@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Users, Monitor, LogOut } from 'lucide-react';
+import GameInstructions from '@/components/GameInstructions';
+import GameLobby from '@/components/game/GameLobby';
+import OnlineGame from '@/components/game/OnlineGame';
+import { useAuth } from '@/components/auth/AuthProvider';
 import NumberButton from '@/components/NumberButton';
 import GuessHistory from '@/components/GuessHistory';
-import GameInstructions from '@/components/GameInstructions';
-import { Button } from '@/components/ui/button';
-import { Send, RotateCcw, Users, Monitor } from 'lucide-react';
+import { Send, RotateCcw } from 'lucide-react';
 
 interface Guess {
   numbers: number[];
@@ -13,16 +18,21 @@ interface Guess {
 }
 
 const Index = () => {
-  const { toast } = useToast();
-  const [gameMode, setGameMode] = useState<'computer' | 'twoPlayer' | null>(null);
+  const [gameMode, setGameMode] = useState<'computer' | 'online' | null>(null);
+  const [onlineGameId, setOnlineGameId] = useState<string | null>(null);
   const [targetNumber, setTargetNumber] = useState<number[]>([]);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [gameWon, setGameWon] = useState(false);
-  const [currentPlayer, setCurrentPlayer] = useState<1 | 2>(1);
-  const [setupPhase, setSetupPhase] = useState(true);
-  const [player1Number, setPlayer1Number] = useState<number[]>([]);
-  const [player2Number, setPlayer2Number] = useState<number[]>([]);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const generateTargetNumber = () => {
     const numbers = Array.from({ length: 10 }, (_, i) => i);
@@ -30,60 +40,34 @@ const Index = () => {
     return shuffled.slice(0, 4);
   };
 
-  const resetGame = () => {
-    setGameMode(null);
-    setTargetNumber([]);
-    setSelectedNumbers([]);
-    setGuesses([]);
-    setGameWon(false);
-    setCurrentPlayer(1);
-    setSetupPhase(true);
-    setPlayer1Number([]);
-    setPlayer2Number([]);
-  };
-
   useEffect(() => {
     if (gameMode === 'computer') {
       setTargetNumber(generateTargetNumber());
-      setSetupPhase(false);
     }
   }, [gameMode]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const handleGameStart = (gameId: string) => {
+    setOnlineGameId(gameId);
+  };
+
+  const handleExitGame = () => {
+    setOnlineGameId(null);
+    setGameMode(null);
+    setSelectedNumbers([]);
+    setGuesses([]);
+    setGameWon(false);
+  };
 
   const handleNumberClick = (number: number) => {
     if (selectedNumbers.includes(number)) {
       setSelectedNumbers(selectedNumbers.filter((n) => n !== number));
     } else if (selectedNumbers.length < 4) {
       setSelectedNumbers([...selectedNumbers, number]);
-    }
-  };
-
-  const handleSetupSubmit = () => {
-    if (selectedNumbers.length !== 4) {
-      toast({
-        title: "Invalid number",
-        description: "Please select exactly 4 numbers",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (setupPhase) {
-      if (!player1Number.length) {
-        setPlayer1Number([...selectedNumbers]);
-        setSelectedNumbers([]);
-        toast({
-          title: "Player 1's number set",
-          description: "Player 2, select your number",
-        });
-      } else {
-        setPlayer2Number([...selectedNumbers]);
-        setSelectedNumbers([]);
-        setSetupPhase(false);
-        toast({
-          title: "Game started",
-          description: "Player 1's turn to guess",
-        });
-      }
     }
   };
 
@@ -99,13 +83,11 @@ const Index = () => {
 
     let dead = 0;
     let injured = 0;
-    const targetToCheck = gameMode === 'computer' ? targetNumber : 
-                         currentPlayer === 1 ? player2Number : player1Number;
 
     selectedNumbers.forEach((num, index) => {
-      if (targetToCheck[index] === num) {
+      if (targetNumber[index] === num) {
         dead++;
-      } else if (targetToCheck.includes(num)) {
+      } else if (targetNumber.includes(num)) {
         injured++;
       }
     });
@@ -123,24 +105,26 @@ const Index = () => {
       setGameWon(true);
       toast({
         title: "Congratulations!",
-        description: gameMode === 'computer' ? 
-          "You've won the game!" : 
-          `Player ${currentPlayer} has won the game!`,
-      });
-    } else if (gameMode === 'twoPlayer') {
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
-      toast({
-        title: "Next turn",
-        description: `Player ${currentPlayer === 1 ? 2 : 1}'s turn`,
+        description: "You've won the game!",
       });
     }
   };
+
+  if (!user) return null;
 
   if (!gameMode) {
     return (
       <div className="min-h-screen bg-game-background text-white p-4">
         <div className="container max-w-2xl mx-auto space-y-8 relative">
           <GameInstructions />
+          <Button
+            onClick={handleSignOut}
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 left-4 text-game-accent"
+          >
+            <LogOut className="h-6 w-6" />
+          </Button>
           <div className="text-center space-y-8">
             <h1 className="text-4xl font-bold text-game-accent">Dead & Injured</h1>
             <p className="text-game-accent/60">Choose your game mode</p>
@@ -153,14 +137,37 @@ const Index = () => {
                 vs Computer
               </Button>
               <Button
-                onClick={() => setGameMode('twoPlayer')}
+                onClick={() => setGameMode('online')}
                 className="bg-game-accent text-game-background hover:bg-game-accent/80 p-8"
               >
                 <Users className="mr-2 h-6 w-6" />
-                2 Players
+                Online
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameMode === 'online') {
+    return (
+      <div className="min-h-screen bg-game-background text-white p-4">
+        <div className="container max-w-2xl mx-auto space-y-8 relative">
+          <GameInstructions />
+          <Button
+            onClick={handleExitGame}
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 left-4 text-game-accent"
+          >
+            <LogOut className="h-6 w-6" />
+          </Button>
+          {onlineGameId ? (
+            <OnlineGame gameId={onlineGameId} onExit={handleExitGame} />
+          ) : (
+            <GameLobby onGameStart={handleGameStart} />
+          )}
         </div>
       </div>
     );
@@ -170,18 +177,20 @@ const Index = () => {
     <div className="min-h-screen bg-game-background text-white p-4">
       <div className="container max-w-2xl mx-auto space-y-8 relative">
         <GameInstructions />
-        
+        <Button
+          onClick={handleExitGame}
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 left-4 text-game-accent"
+        >
+          <LogOut className="h-6 w-6" />
+        </Button>
+
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold text-game-accent">Dead & Injured</h1>
-          {setupPhase && gameMode === 'twoPlayer' ? (
-            <p className="text-game-accent/60">
-              Player {!player1Number.length ? '1' : '2'} - Select your number
-            </p>
-          ) : (
-            <p className="text-game-accent/60">
-              {gameMode === 'computer' ? 'Crack the code!' : `Player ${currentPlayer}'s turn`}
-            </p>
-          )}
+          <p className="text-game-accent/60">
+            {gameWon ? 'Congratulations!' : 'Crack the code!'}
+          </p>
         </div>
 
         <div className="space-y-6">
@@ -220,15 +229,15 @@ const Index = () => {
 
           <div className="flex justify-center gap-4">
             <Button
-              onClick={setupPhase ? handleSetupSubmit : checkGuess}
+              onClick={checkGuess}
               disabled={selectedNumbers.length !== 4 || gameWon}
               className="bg-game-accent text-game-background hover:bg-game-accent/80"
             >
               <Send className="mr-2 h-4 w-4" />
-              {setupPhase ? 'Set Number' : 'Submit Guess'}
+              Submit Guess
             </Button>
             <Button
-              onClick={resetGame}
+              onClick={handleExitGame}
               variant="outline"
               className="border-game-accent text-game-accent hover:bg-game-accent/20"
             >
@@ -238,11 +247,9 @@ const Index = () => {
           </div>
         </div>
 
-        {!setupPhase && (
-          <div className="mt-8">
-            <GuessHistory guesses={guesses} />
-          </div>
-        )}
+        <div className="mt-8">
+          <GuessHistory guesses={guesses} />
+        </div>
       </div>
     </div>
   );

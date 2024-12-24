@@ -9,7 +9,80 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      game_sessions: {
+        Row: {
+          created_at: string
+          current_turn: string | null
+          id: string
+          player1_id: string
+          player1_number: number[]
+          player2_id: string | null
+          player2_number: number[] | null
+          status: Database["public"]["Enums"]["game_status"]
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_turn?: string | null
+          id?: string
+          player1_id: string
+          player1_number: number[]
+          player2_id?: string | null
+          player2_number?: number[] | null
+          status?: Database["public"]["Enums"]["game_status"]
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_turn?: string | null
+          id?: string
+          player1_id?: string
+          player1_number?: number[]
+          player2_id?: string | null
+          player2_number?: number[] | null
+          status?: Database["public"]["Enums"]["game_status"]
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
+      guesses: {
+        Row: {
+          created_at: string
+          dead: number
+          game_id: string
+          id: string
+          injured: number
+          numbers: number[]
+          player_id: string
+        }
+        Insert: {
+          created_at?: string
+          dead: number
+          game_id: string
+          id?: string
+          injured: number
+          numbers: number[]
+          player_id: string
+        }
+        Update: {
+          created_at?: string
+          dead?: number
+          game_id?: string
+          id?: string
+          injured?: number
+          numbers?: number[]
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guesses_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "game_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +91,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      game_status: "waiting_for_player" | "in_progress" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
