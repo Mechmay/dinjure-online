@@ -23,8 +23,15 @@ const GameInstructions = () => {
           <DialogTitle className="text-game-accent">How to Play</DialogTitle>
           <DialogDescription className="text-white/80">
             <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="font-semibold text-game-accent">Game Modes:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><span className="text-game-accent">vs Computer</span> - Try to guess the computer's 4-digit number</li>
+                  <li><span className="text-game-accent">2 Players</span> - Each player sets a secret number and takes turns guessing</li>
+                </ul>
+              </div>
               <p>
-                Try to guess the computer's 4-digit number. Each digit is unique and between 0-9.
+                Each number must be unique and between 0-9.
               </p>
               <div className="space-y-2">
                 <p className="font-semibold text-game-accent">Feedback:</p>
