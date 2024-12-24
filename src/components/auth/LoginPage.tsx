@@ -4,10 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
+import { useToast } from '@/hooks/use-toast';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (session) {
@@ -37,6 +39,14 @@ const LoginPage = () => {
               },
             }}
             providers={[]}
+            onError={(error) => {
+              toast({
+                variant: "destructive",
+                title: "Authentication Error",
+                description: error.message,
+              });
+            }}
+            redirectTo={window.location.origin}
           />
         </div>
       </div>
