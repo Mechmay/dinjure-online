@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { useToast } from '@/hooks/use-toast';
+import { AuthChangeEvent } from '@supabase/supabase-js';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -18,11 +19,11 @@ const LoginPage = () => {
   }, [session, navigate]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
       if (event === 'SIGNED_IN') {
         navigate('/');
       }
-      if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT') {
         navigate('/login');
       }
     });
