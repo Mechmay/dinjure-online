@@ -17,6 +17,21 @@ const LoginPage = () => {
     }
   }, [session, navigate]);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        navigate('/');
+      }
+      if (event === 'USER_DELETED' || event === 'SIGNED_OUT') {
+        navigate('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-game-background flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
@@ -39,13 +54,6 @@ const LoginPage = () => {
               },
             }}
             providers={[]}
-            onError={(error) => {
-              toast({
-                variant: "destructive",
-                title: "Authentication Error",
-                description: error.message,
-              });
-            }}
             redirectTo={window.location.origin}
           />
         </div>
