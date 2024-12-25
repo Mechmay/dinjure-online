@@ -25,9 +25,18 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         game: {
-          background: "#1a1a2e",
-          accent: "#00fff5",
-          muted: "#4a4a6a",
+          background: {
+            DEFAULT: "#1a1a2e",
+            light: "#f1f0fb"
+          },
+          accent: {
+            DEFAULT: "#00fff5",
+            light: "#222222"
+          },
+          muted: {
+            DEFAULT: "#4a4a6a",
+            light: "#8E9196"
+          }
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",

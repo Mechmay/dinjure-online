@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Monitor, Users, UsersRound, LogOut } from 'lucide-react';
 import GameInstructions from '../GameInstructions';
+import { ThemeToggle } from '../theme/ThemeToggle';
 
 interface GameModeSelectionProps {
   onModeSelect: (mode: 'computer' | 'online' | 'offline') => void;
@@ -13,6 +14,7 @@ const GameModeSelection = ({ onModeSelect, onSignOut }: GameModeSelectionProps) 
     <div className="min-h-screen bg-game-background text-white p-4">
       <div className="container max-w-2xl mx-auto space-y-8 relative">
         <GameInstructions />
+        <ThemeToggle />
         <Button
           onClick={onSignOut}
           variant="ghost"
