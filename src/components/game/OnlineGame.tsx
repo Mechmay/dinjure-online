@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../auth/AuthProvider';
-import NumberButton from '../NumberButton';
+import GameHeader from './GameHeader';
+import NumberSelection from './NumberSelection';
+import GameControls from './GameControls';
 import GuessHistory from '../GuessHistory';
-import { Button } from '../ui/button';
-import { Send, RotateCcw } from 'lucide-react';
+import GameInstructions from '../GameInstructions';
 
 interface GameSession {
   id: string;
@@ -206,91 +207,44 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
   const needsToSetNumbers = isPlayer1 
     ? gameSession.player1_number.length === 0 
     : gameSession.player2_number.length === 0;
-  const opponent = isPlayer1 ? gameSession.player2_id : gameSession.player1_id;
   const myNumbers = isPlayer1 ? gameSession.player1_number : gameSession.player2_number;
 
   return (
-    <div className="space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-game-accent">
-          {gameSession.status === 'completed'
-            ? `Game Over - ${gameSession.winner_id === user.id ? 'You Won!' : 'You Lost!'}`
-            : needsToSetNumbers
-            ? 'Set Your Numbers'
-            : isMyTurn
-            ? 'Your Turn'
-            : "Opponent's Turn"}
-        </h2>
-        {myNumbers.length > 0 && (
-          <div className="text-white">
-            Your numbers: {myNumbers.join(' ')}
-          </div>
-        )}
+    <div className="min-h-screen bg-game-background text-white p-4">
+      <div className="container max-w-2xl mx-auto space-y-8">
+        <GameInstructions />
+        
+        <GameHeader
+          gameWon={gameSession.winner_id === user.id}
+          playerNumbers={myNumbers}
+          isOnline={true}
+          status={gameSession.status}
+          isMyTurn={isMyTurn}
+          needsToSetNumbers={needsToSetNumbers}
+        />
+
+        <NumberSelection
+          selectedNumbers={selectedNumbers}
+          onNumberClick={handleNumberClick}
+          disabled={
+            gameSession.status === 'completed' ||
+            (!isMyTurn && !needsToSetNumbers)
+          }
+        />
+
+        <GameControls
+          onSubmit={needsToSetNumbers ? submitNumbers : submitGuess}
+          onExit={onExit}
+          submitDisabled={
+            selectedNumbers.length !== 4 ||
+            gameSession.status === 'completed' ||
+            (!isMyTurn && !needsToSetNumbers)
+          }
+          isSettingNumbers={needsToSetNumbers}
+        />
+
+        {!needsToSetNumbers && <GuessHistory guesses={guesses} />}
       </div>
-
-      <div className="space-y-6">
-        <div className="flex justify-center gap-2">
-          {selectedNumbers.map((num, index) => (
-            <div
-              key={index}
-              className="w-12 h-12 border-2 border-game-accent rounded flex items-center justify-center text-xl font-mono text-game-accent"
-            >
-              {num}
-            </div>
-          ))}
-          {Array(4 - selectedNumbers.length)
-            .fill(null)
-            .map((_, index) => (
-              <div
-                key={`empty-${index}`}
-                className="w-12 h-12 border-2 border-game-accent/30 rounded flex items-center justify-center text-xl font-mono"
-              >
-                _
-              </div>
-            ))}
-        </div>
-
-        <div className="grid grid-cols-5 gap-2 justify-center max-w-xs mx-auto">
-          {Array.from({ length: 10 }, (_, i) => (
-            <NumberButton
-              key={i}
-              number={i}
-              onClick={handleNumberClick}
-              selected={selectedNumbers.includes(i)}
-              disabled={
-                gameSession.status === 'completed' ||
-                (!isMyTurn && !needsToSetNumbers) ||
-                (selectedNumbers.length === 4 && !selectedNumbers.includes(i))
-              }
-            />
-          ))}
-        </div>
-
-        <div className="flex justify-center gap-4">
-          <Button
-            onClick={needsToSetNumbers ? submitNumbers : submitGuess}
-            disabled={
-              selectedNumbers.length !== 4 ||
-              gameSession.status === 'completed' ||
-              (!isMyTurn && !needsToSetNumbers)
-            }
-            className="bg-game-accent text-game-background hover:bg-game-accent/80"
-          >
-            <Send className="mr-2 h-4 w-4" />
-            {needsToSetNumbers ? 'Set Numbers' : 'Submit Guess'}
-          </Button>
-          <Button
-            onClick={onExit}
-            variant="outline"
-            className="border-game-accent text-game-accent hover:bg-game-accent/20"
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Exit Game
-          </Button>
-        </div>
-      </div>
-
-      {!needsToSetNumbers && <GuessHistory guesses={guesses} />}
     </div>
   );
 };
