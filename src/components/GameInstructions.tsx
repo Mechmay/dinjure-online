@@ -14,27 +14,27 @@ const GameInstructions = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-game-accent">
+        <Button variant="ghost" size="icon" className="absolute top-4 right-4 dark:text-game-accent text-game-accent-light">
           <HelpCircle className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-game-background border-game-accent text-white">
+      <DialogContent className="dark:bg-game-background bg-game-background-light dark:border-game-accent border-game-accent-light dark:text-white text-game-accent-light">
         <DialogHeader>
-          <DialogTitle className="text-game-accent">How to Play</DialogTitle>
-          <DialogDescription className="text-white/80">
+          <DialogTitle className="dark:text-game-accent text-game-accent-light">How to Play</DialogTitle>
+          <DialogDescription className="dark:text-white/80 text-game-accent-light/80">
             <div className="space-y-4">
               <div className="space-y-2">
-                <p className="font-semibold text-game-accent">Game Modes:</p>
+                <p className="font-semibold dark:text-game-accent text-game-accent-light">Game Modes:</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li><span className="text-game-accent">vs Computer</span> - Try to guess the computer's 4-digit number</li>
-                  <li><span className="text-game-accent">2 Players</span> - Each player sets a secret number and takes turns guessing</li>
+                  <li><span className="dark:text-game-accent text-game-accent-light">vs Computer</span> - Try to guess the computer's 4-digit number</li>
+                  <li><span className="dark:text-game-accent text-game-accent-light">2 Players</span> - Each player sets a secret number and takes turns guessing</li>
                 </ul>
               </div>
               <p>
                 Each number must be unique and between 0-9.
               </p>
               <div className="space-y-2">
-                <p className="font-semibold text-game-accent">Feedback:</p>
+                <p className="font-semibold dark:text-game-accent text-game-accent-light">Feedback:</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li><span className="text-red-500">Dead</span> - Right number in the right position</li>
                   <li><span className="text-yellow-500">Dinjure</span> - Right number in the wrong position</li>

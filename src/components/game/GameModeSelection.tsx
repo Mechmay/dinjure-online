@@ -11,7 +11,7 @@ interface GameModeSelectionProps {
 
 const GameModeSelection = ({ onModeSelect, onSignOut }: GameModeSelectionProps) => {
   return (
-    <div className="min-h-screen bg-game-background text-white p-4">
+    <div className="min-h-screen dark:bg-game-background bg-game-background-light text-game-accent-light dark:text-white p-4">
       <div className="container max-w-2xl mx-auto space-y-8 relative">
         <GameInstructions />
         <ThemeToggle />
@@ -19,31 +19,31 @@ const GameModeSelection = ({ onModeSelect, onSignOut }: GameModeSelectionProps) 
           onClick={onSignOut}
           variant="ghost"
           size="icon"
-          className="absolute top-4 left-4 text-game-accent"
+          className="absolute top-4 left-4 dark:text-game-accent text-game-accent-light"
         >
           <LogOut className="h-6 w-6" />
         </Button>
         <div className="text-center space-y-8">
-          <h1 className="text-4xl font-bold text-game-accent">Dinjure</h1>
-          <p className="text-game-accent/60">Choose your game mode</p>
+          <h1 className="text-4xl font-bold dark:text-game-accent text-game-accent-light">Dinjure</h1>
+          <p className="dark:text-game-accent/60 text-game-accent-light/60">Choose your game mode</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
             <Button
               onClick={() => onModeSelect('computer')}
-              className="bg-game-accent text-game-background hover:bg-game-accent/80 p-8"
+              className="dark:bg-game-accent bg-game-accent-light dark:text-game-background text-white dark:hover:bg-game-accent/80 hover:bg-game-accent-light/80 p-8"
             >
               <Monitor className="mr-2 h-6 w-6" />
               vs Computer
             </Button>
             <Button
               onClick={() => onModeSelect('offline')}
-              className="bg-game-accent text-game-background hover:bg-game-accent/80 p-8"
+              className="dark:bg-game-accent bg-game-accent-light dark:text-game-background text-white dark:hover:bg-game-accent/80 hover:bg-game-accent-light/80 p-8"
             >
               <UsersRound className="mr-2 h-6 w-6" />
               2 Players Local
             </Button>
             <Button
               onClick={() => onModeSelect('online')}
-              className="bg-game-accent text-game-background hover:bg-game-accent/80 p-8"
+              className="dark:bg-game-accent bg-game-accent-light dark:text-game-background text-white dark:hover:bg-game-accent/80 hover:bg-game-accent-light/80 p-8"
             >
               <Users className="mr-2 h-6 w-6" />
               Online

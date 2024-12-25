@@ -17,8 +17,10 @@ const NumberButton = ({ number, onClick, disabled, selected }: NumberButtonProps
       className={cn(
         "w-12 h-12 text-xl font-mono border-2",
         "transition-all duration-200",
-        selected ? "bg-game-accent text-game-background" : "bg-transparent hover:bg-game-accent/20",
-        "border-game-accent text-game-accent",
+        selected 
+          ? "dark:bg-game-accent bg-game-accent-light dark:text-game-background text-white" 
+          : "bg-transparent hover:bg-game-accent/20 dark:hover:bg-game-accent/20",
+        "dark:border-game-accent border-game-accent-light dark:text-game-accent text-game-accent-light",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >

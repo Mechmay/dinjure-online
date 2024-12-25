@@ -16,9 +16,9 @@ const GuessHistory = ({ guesses }: GuessHistoryProps) => {
       {guesses.map((guess, index) => (
         <div
           key={index}
-          className="flex items-center justify-between p-3 border-2 border-game-accent/30 rounded-lg bg-game-background/50"
+          className="flex items-center justify-between p-3 border-2 dark:border-game-accent/30 border-game-accent-light/30 rounded-lg dark:bg-game-background/50 bg-game-background-light/50"
         >
-          <div className="flex space-x-2 font-mono text-xl text-game-accent">
+          <div className="flex space-x-2 font-mono text-xl dark:text-game-accent text-game-accent-light">
             {guess.numbers.map((num, idx) => (
               <span key={idx}>{num}</span>
             ))}
