@@ -184,8 +184,8 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
         .eq('id', gameId);
 
       toast({
-        title: 'Congratulations!',
-        description: 'You won the game!',
+        title: '4 Dead! Dinjure!',
+        description: 'Congratulations, you won the game!',
       });
     } else {
       await supabase

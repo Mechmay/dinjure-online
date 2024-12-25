@@ -104,8 +104,8 @@ const Index = () => {
     if (dead === 4) {
       setGameWon(true);
       toast({
-        title: "Congratulations!",
-        description: "You've won the game!",
+        title: "4 Dead! Dinjure!",
+        description: "Congratulations, you've won the game!",
       });
     }
   };
@@ -126,7 +126,7 @@ const Index = () => {
             <LogOut className="h-6 w-6" />
           </Button>
           <div className="text-center space-y-8">
-            <h1 className="text-4xl font-bold text-game-accent">Dead & Injured</h1>
+            <h1 className="text-4xl font-bold text-game-accent">Dinjure</h1>
             <p className="text-game-accent/60">Choose your game mode</p>
             <div className="flex justify-center gap-4">
               <Button
@@ -187,7 +187,7 @@ const Index = () => {
         </Button>
 
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-game-accent">Dead & Injured</h1>
+          <h1 className="text-4xl font-bold text-game-accent">Dinjure</h1>
           <p className="text-game-accent/60">
             {gameWon ? 'Congratulations!' : 'Crack the code!'}
           </p>

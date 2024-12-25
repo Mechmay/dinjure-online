@@ -37,7 +37,7 @@ const GameInstructions = () => {
                 <p className="font-semibold text-game-accent">Feedback:</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li><span className="text-red-500">Dead</span> - Right number in the right position</li>
-                  <li><span className="text-yellow-500">Injured</span> - Right number in the wrong position</li>
+                  <li><span className="text-yellow-500">Dinjure</span> - Right number in the wrong position</li>
                 </ul>
               </div>
               <p>

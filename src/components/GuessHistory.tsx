@@ -25,7 +25,7 @@ const GuessHistory = ({ guesses }: GuessHistoryProps) => {
           </div>
           <div className="flex space-x-4 text-sm">
             <span className="text-red-500">{guess.dead} Dead</span>
-            <span className="text-yellow-500">{guess.injured} Injured</span>
+            <span className="text-yellow-500">{guess.injured} Dinjure</span>
           </div>
         </div>
       ))}
