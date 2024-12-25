@@ -10,6 +10,7 @@ import GameHeader from '@/components/game/GameHeader';
 import GameControls from '@/components/game/GameControls';
 import GuessHistory from '@/components/GuessHistory';
 import GameInstructions from '@/components/GameInstructions';
+import GameLobby from '@/components/game/GameLobby';
 
 type GameMode = 'computer' | 'online' | 'offline' | null;
 
