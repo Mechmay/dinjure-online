@@ -31,11 +31,6 @@ const GameHeader = ({
             ? 'Your Turn'
             : "Opponent's Turn"}
         </h2>
-        {playerNumbers && playerNumbers.length > 0 && (
-          <div className="text-white">
-            Your numbers: {playerNumbers.join(' ')}
-          </div>
-        )}
       </div>
     );
   }
@@ -49,11 +44,6 @@ const GameHeader = ({
           ? `Player ${currentPlayer} - Set Your Numbers`
           : `Player ${currentPlayer}'s Turn`}
       </h2>
-      {playerNumbers && playerNumbers.length > 0 && (
-        <div className="text-white">
-          Your numbers: {playerNumbers.join(' ')}
-        </div>
-      )}
     </div>
   );
 };

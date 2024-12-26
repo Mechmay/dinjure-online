@@ -102,14 +102,12 @@ const OfflineGame = ({ onExit }: { onExit: () => void }) => {
   };
 
   const needsToSetNumbers = !player1.hasSetNumbers || !player2.hasSetNumbers;
-  const playerNumbers = currentPlayer === 1 ? player1.numbers : player2.numbers;
 
   return (
     <div className="space-y-8">
       <GameHeader 
         gameWon={gameWon}
         currentPlayer={currentPlayer}
-        playerNumbers={needsToSetNumbers ? undefined : playerNumbers}
         needsToSetNumbers={needsToSetNumbers}
       />
 
