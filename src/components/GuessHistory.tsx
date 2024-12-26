@@ -1,32 +1,36 @@
 import React from 'react';
-
-interface Guess {
-  numbers: number[];
-  dead: number;
-  injured: number;
-}
+import { useTheme } from './theme/ThemeProvider';
 
 interface GuessHistoryProps {
-  guesses: Guess[];
+  guesses: {
+    numbers: number[];
+    dead: number;
+    injured: number;
+  }[];
 }
 
-const GuessHistory = ({ guesses }: GuessHistoryProps) => {
+const GuessHistory: React.FC<GuessHistoryProps> = ({ guesses }) => {
+  const { theme } = useTheme();
+  
   return (
-    <div className="w-full max-w-md space-y-2">
+    <div className="space-y-2">
       {guesses.map((guess, index) => (
         <div
           key={index}
-          className="flex items-center justify-between p-3 border-2 dark:border-game-accent/30 border-game-accent-light/30 rounded-lg dark:bg-game-background/50 bg-game-background-light/50"
+          className={`p-2 rounded ${
+            theme === 'light'
+              ? 'bg-white border border-gray-200'
+              : 'bg-white/5 border border-game-accent/20'
+          }`}
         >
-          <div className="flex space-x-2 font-mono text-xl dark:text-game-accent text-game-accent-light">
-            {guess.numbers.map((num, idx) => (
-              <span key={idx}>{num}</span>
-            ))}
-          </div>
-          <div className="flex space-x-4 text-sm">
-            <span className="text-red-500">{guess.dead} Dead</span>
-            <span className="text-yellow-500">{guess.injured} Dinjure</span>
-          </div>
+          <span className={theme === 'light' ? 'text-gray-800' : 'text-white'}>
+            {guess.numbers.join(' ')} -{' '}
+          </span>
+          <span className={theme === 'light' ? 'text-gray-600' : 'text-game-accent'}>
+            {guess.dead === 4
+              ? '4 Dead! Dinjure!'
+              : `${guess.dead} Dead, ${guess.injured} Injured`}
+          </span>
         </div>
       ))}
     </div>

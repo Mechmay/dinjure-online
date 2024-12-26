@@ -6,11 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 import { AuthChangeEvent } from '@supabase/supabase-js';
+import { ThemeToggle } from '../theme/ThemeToggle';
+import { useTheme } from '../theme/ThemeProvider';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { toast } = useToast();
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (session) {
@@ -34,13 +37,14 @@ const LoginPage = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-game-background flex items-center justify-center p-4">
+    <div className={`min-h-screen ${theme === 'light' ? 'bg-game-background-light' : 'bg-game-background'} flex items-center justify-center p-4`}>
+      <ThemeToggle />
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-game-accent">Dinjure</h1>
-          <p className="mt-2 text-white/60">Sign in to play online</p>
+          <h1 className={`text-4xl font-bold ${theme === 'light' ? 'text-game-accent-light' : 'text-game-accent'}`}>Dinjure</h1>
+          <p className={`mt-2 ${theme === 'light' ? 'text-gray-600' : 'text-white/60'}`}>Sign in to play online</p>
         </div>
-        <div className="bg-white/5 p-8 rounded-lg border-2 border-game-accent/20">
+        <div className={`${theme === 'light' ? 'bg-white shadow-lg' : 'bg-white/5'} p-8 rounded-lg ${theme === 'light' ? 'border border-gray-200' : 'border-2 border-game-accent/20'}`}>
           <Auth
             supabaseClient={supabase}
             appearance={{
@@ -48,8 +52,8 @@ const LoginPage = () => {
               variables: {
                 default: {
                   colors: {
-                    brand: '#FF5F1F',
-                    brandAccent: '#FF5F1F',
+                    brand: theme === 'light' ? '#222222' : '#FF5F1F',
+                    brandAccent: theme === 'light' ? '#000000' : '#FF5F1F',
                   },
                 },
               },
