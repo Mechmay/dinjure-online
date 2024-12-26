@@ -4,6 +4,7 @@ import NumberButton from '../NumberButton';
 import GuessHistory from '../GuessHistory';
 import { Button } from '../ui/button';
 import { Send, RotateCcw } from 'lucide-react';
+import GameHeader from './GameHeader';
 
 interface Player {
   numbers: number[];
@@ -105,20 +106,12 @@ const OfflineGame = ({ onExit }: { onExit: () => void }) => {
 
   return (
     <div className="space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-game-accent">
-          {gameWon
-            ? `Game Over - Player ${currentPlayer} Won!`
-            : needsToSetNumbers
-            ? `Player ${settingPlayer} - Set Your Numbers`
-            : `Player ${currentPlayer}'s Turn`}
-        </h2>
-        {!needsToSetNumbers && playerNumbers.length > 0 && (
-          <div className="text-white">
-            Your numbers: {playerNumbers.join(' ')}
-          </div>
-        )}
-      </div>
+      <GameHeader 
+        gameWon={gameWon}
+        currentPlayer={currentPlayer}
+        playerNumbers={needsToSetNumbers ? undefined : playerNumbers}
+        needsToSetNumbers={needsToSetNumbers}
+      />
 
       <div className="space-y-6">
         <div className="flex justify-center gap-2">
