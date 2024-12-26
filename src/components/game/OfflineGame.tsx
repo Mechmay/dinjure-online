@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import NumberButton from '../NumberButton';
 import GuessHistory from '../GuessHistory';
-import { Button } from '../ui/button';
-import { Send, RotateCcw } from 'lucide-react';
 import GameHeader from './GameHeader';
+import GameControls from './GameControls';
+import NumberDisplay from './NumberDisplay';
+import NumberSelection from './NumberSelection';
 
 interface Player {
   numbers: number[];
@@ -92,7 +93,7 @@ const OfflineGame = ({ onExit }: { onExit: () => void }) => {
     if (dead === 4) {
       setGameWon(true);
       toast({
-        title: '4 Dead! Dinjure!',
+        title: 'Game Over!',
         description: `Congratulations Player ${currentPlayer}, you've won the game!`,
       });
     } else {
@@ -101,7 +102,6 @@ const OfflineGame = ({ onExit }: { onExit: () => void }) => {
   };
 
   const needsToSetNumbers = !player1.hasSetNumbers || !player2.hasSetNumbers;
-  const settingPlayer = !player1.hasSetNumbers ? 1 : 2;
   const playerNumbers = currentPlayer === 1 ? player1.numbers : player2.numbers;
 
   return (
@@ -114,60 +114,20 @@ const OfflineGame = ({ onExit }: { onExit: () => void }) => {
       />
 
       <div className="space-y-6">
-        <div className="flex justify-center gap-2">
-          {selectedNumbers.map((num, index) => (
-            <div
-              key={index}
-              className="w-12 h-12 border-2 border-game-accent rounded flex items-center justify-center text-xl font-mono text-game-accent"
-            >
-              {num}
-            </div>
-          ))}
-          {Array(4 - selectedNumbers.length)
-            .fill(null)
-            .map((_, index) => (
-              <div
-                key={`empty-${index}`}
-                className="w-12 h-12 border-2 border-game-accent/30 rounded flex items-center justify-center text-xl font-mono"
-              >
-                _
-              </div>
-            ))}
-        </div>
+        <NumberDisplay selectedNumbers={selectedNumbers} />
 
-        <div className="grid grid-cols-5 gap-2 justify-center max-w-xs mx-auto">
-          {Array.from({ length: 10 }, (_, i) => (
-            <NumberButton
-              key={i}
-              number={i}
-              onClick={handleNumberClick}
-              selected={selectedNumbers.includes(i)}
-              disabled={
-                gameWon ||
-                (selectedNumbers.length === 4 && !selectedNumbers.includes(i))
-              }
-            />
-          ))}
-        </div>
+        <NumberSelection
+          selectedNumbers={selectedNumbers}
+          onNumberClick={handleNumberClick}
+          disabled={gameWon}
+        />
 
-        <div className="flex justify-center gap-4">
-          <Button
-            onClick={needsToSetNumbers ? submitNumbers : submitGuess}
-            disabled={selectedNumbers.length !== 4 || gameWon}
-            className="bg-game-accent text-game-background hover:bg-game-accent/80"
-          >
-            <Send className="mr-2 h-4 w-4" />
-            {needsToSetNumbers ? 'Set Numbers' : 'Submit Guess'}
-          </Button>
-          <Button
-            onClick={onExit}
-            variant="outline"
-            className="border-game-accent text-game-accent hover:bg-game-accent/20"
-          >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Exit Game
-          </Button>
-        </div>
+        <GameControls
+          onSubmit={needsToSetNumbers ? submitNumbers : submitGuess}
+          onExit={onExit}
+          submitDisabled={selectedNumbers.length !== 4 || gameWon}
+          isSettingNumbers={needsToSetNumbers}
+        />
       </div>
 
       {!needsToSetNumbers && (
