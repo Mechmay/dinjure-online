@@ -129,13 +129,7 @@ const OfflineGame = ({ onExit }: { onExit: () => void }) => {
       </div>
 
       {!needsToSetNumbers && (
-        <GuessHistory
-          guesses={guesses.map(g => ({
-            numbers: g.numbers,
-            dead: g.dead,
-            injured: g.injured
-          }))}
-        />
+        <GuessHistory guesses={guesses} />
       )}
     </div>
   );
