@@ -13,23 +13,38 @@ interface GameSession {
 
 const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) => {
   const [availableGames, setAvailableGames] = useState<GameSession[]>([]);
+  const [myGames, setMyGames] = useState<GameSession[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchGames = async () => {
-      const { data, error } = await supabase
+      // Fetch available games (waiting for players, excluding user's own games)
+      const { data: availableData, error: availableError } = await supabase
         .from('game_sessions')
         .select('*')
         .eq('status', 'waiting_for_player')
-        .neq('player1_id', user?.id); // Don't show user's own games
+        .neq('player1_id', user?.id);
 
-      if (error) {
-        console.error('Error fetching games:', error);
+      if (availableError) {
+        console.error('Error fetching available games:', availableError);
         return;
       }
 
-      setAvailableGames(data);
+      // Fetch user's games (created by user or participating in)
+      const { data: myGamesData, error: myGamesError } = await supabase
+        .from('game_sessions')
+        .select('*')
+        .or(`player1_id.eq.${user?.id},player2_id.eq.${user?.id}`)
+        .order('created_at', { ascending: false });
+
+      if (myGamesError) {
+        console.error('Error fetching my games:', myGamesError);
+        return;
+      }
+
+      setAvailableGames(availableData || []);
+      setMyGames(myGamesData || []);
     };
 
     fetchGames();
@@ -105,6 +120,23 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
     onGameStart(gameId);
   };
 
+  const getGameStatus = (game: GameSession) => {
+    switch (game.status) {
+      case 'waiting_for_player':
+        return 'Waiting for opponent...';
+      case 'in_progress':
+        return 'Game in progress';
+      case 'completed':
+        return 'Game completed';
+      default:
+        return '';
+    }
+  };
+
+  const continueGame = (gameId: string) => {
+    onGameStart(gameId);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -116,6 +148,29 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
           Create New Game
         </Button>
       </div>
+
+      {myGames.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-game-accent">My Games</h3>
+          {myGames.map((game) => (
+            <div
+              key={game.id}
+              className="flex justify-between items-center p-4 border-2 border-game-accent/20 rounded-lg bg-white/5"
+            >
+              <div className="space-y-1">
+                <span className="text-white">Game #{game.id.slice(0, 8)}</span>
+                <p className="text-sm text-white/60">{getGameStatus(game)}</p>
+              </div>
+              <Button
+                onClick={() => continueGame(game.id)}
+                className="bg-game-accent text-game-background hover:bg-game-accent/80"
+              >
+                Continue Game
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-4">
         <h3 className="text-xl font-semibold text-game-accent">Available Games</h3>
