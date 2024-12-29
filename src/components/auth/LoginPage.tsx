@@ -23,11 +23,8 @@ const LoginPage = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
-      if (event === 'SIGNED_IN') {
+      if (event === 'SIGNED_IN' && session) {
         navigate('/');
-      }
-      if (event === 'SIGNED_OUT') {
-        navigate('/login');
       }
     });
 
@@ -38,7 +35,7 @@ const LoginPage = () => {
 
   return (
     <div className={`min-h-screen ${theme === 'light' ? 'bg-game-background-light' : 'bg-game-background'} flex items-center justify-center p-4`}>
-      <ThemeToggle />
+      <ThemeToggle className="fixed top-4 right-4" />
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h1 className={`text-4xl font-bold ${theme === 'light' ? 'text-game-accent-light' : 'text-game-accent'}`}>Dinjure</h1>
