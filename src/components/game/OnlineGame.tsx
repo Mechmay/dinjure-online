@@ -5,6 +5,7 @@ import GameState from './GameState';
 import GameActions from './GameActions';
 import GameBoard from './GameBoard';
 import GameInstructions from '../GameInstructions';
+import { Loader2 } from 'lucide-react';
 
 interface OnlineGameProps {
   gameId: string;
@@ -15,9 +16,32 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
   const [gameSession, setGameSession] = useState(null);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [guesses, setGuesses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
-  if (!gameSession || !user) return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
+        <p>Please log in to play.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-game-accent" />
+      </div>
+    );
+  }
+
+  if (!gameSession) {
+    return (
+      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
+        <p>Game not found or you don't have access to it.</p>
+      </div>
+    );
+  }
 
   const handleNumberClick = (number: number) => {
     if (selectedNumbers.includes(number)) {
@@ -57,7 +81,10 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
       <div className="container max-w-2xl mx-auto space-y-8">
         <GameState
           gameId={gameId}
-          onGameUpdate={setGameSession}
+          onGameUpdate={(data) => {
+            setGameSession(data);
+            setIsLoading(false);
+          }}
           onGuessesUpdate={setGuesses}
         />
         

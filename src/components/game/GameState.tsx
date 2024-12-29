@@ -21,6 +21,11 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
 
       if (gameError) {
         console.error('Error fetching game:', gameError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load game data',
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -34,6 +39,11 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
 
       if (guessesError) {
         console.error('Error fetching guesses:', guessesError);
+        toast({
+          title: 'Error',
+          description: 'Failed to load game guesses',
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -77,7 +87,7 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, onGameUpdate, onGuessesUpdate]);
+  }, [gameId, onGameUpdate, onGuessesUpdate, toast]);
 
   return null;
 };
