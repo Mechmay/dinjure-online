@@ -21,7 +21,8 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
       const { data, error } = await supabase
         .from('game_sessions')
         .select('*')
-        .eq('status', 'waiting_for_player');
+        .eq('status', 'waiting_for_player')
+        .neq('player1_id', user?.id); // Don't show user's own games
 
       if (error) {
         console.error('Error fetching games:', error);
@@ -51,7 +52,7 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user?.id]);
 
   const createGame = async () => {
     if (!user) return;
@@ -117,15 +118,18 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
       </div>
 
       <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-game-accent">Available Games</h3>
         {availableGames.map((game) => (
           <div
             key={game.id}
-            className="flex justify-between items-center p-4 border-2 border-game-accent/20 rounded-lg"
+            className="flex justify-between items-center p-4 border-2 border-game-accent/20 rounded-lg bg-white/5"
           >
-            <span className="text-white">Game #{game.id.slice(0, 8)}</span>
+            <div className="space-y-1">
+              <span className="text-white">Game #{game.id.slice(0, 8)}</span>
+              <p className="text-sm text-white/60">Waiting for opponent...</p>
+            </div>
             <Button
               onClick={() => joinGame(game.id)}
-              disabled={game.player1_id === user?.id}
               className="bg-game-accent text-game-background hover:bg-game-accent/80"
             >
               Join Game
@@ -133,7 +137,9 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
           </div>
         ))}
         {availableGames.length === 0 && (
-          <p className="text-white/60 text-center">No games available. Create one!</p>
+          <p className="text-white/60 text-center py-8 bg-white/5 rounded-lg border-2 border-dashed border-game-accent/20">
+            No games available. Create one to start playing!
+          </p>
         )}
       </div>
     </div>

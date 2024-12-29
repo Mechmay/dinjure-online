@@ -57,7 +57,12 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
         return;
       }
 
-      setGuesses(guessesData);
+      // Add player number (1 or 2) to each guess for color coding
+      const processedGuesses = guessesData.map(guess => ({
+        ...guess,
+        player: guess.player_id === gameData.player1_id ? 1 : 2
+      }));
+      setGuesses(processedGuesses);
     };
 
     fetchGame();
@@ -230,6 +235,7 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
             gameSession.status === 'completed' ||
             (!isMyTurn && !needsToSetNumbers)
           }
+          player={isPlayer1 ? 1 : 2}
         />
 
         <GameControls
