@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface GameStateProps {
   gameId: string;
@@ -24,6 +24,15 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
         toast({
           title: 'Error',
           description: 'Failed to load game data',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!gameData) {
+        toast({
+          title: 'Error',
+          description: 'Game not found',
           variant: 'destructive',
         });
         return;
@@ -76,6 +85,7 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
           filter: `id=eq.${gameId}`,
         },
         (payload) => {
+          console.log('Game session updated:', payload);
           onGameUpdate(payload.new);
         }
       )
@@ -88,6 +98,7 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
           filter: `game_id=eq.${gameId}`,
         },
         () => {
+          console.log('New guess received, fetching updated data');
           fetchGameData();
         }
       )

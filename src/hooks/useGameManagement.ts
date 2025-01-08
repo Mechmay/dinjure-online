@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { GameSession } from '@/types/game';
 
 export const useGameManagement = (userId: string | undefined, onGameStart: (gameId: string) => void) => {
@@ -66,6 +66,7 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
         .single();
 
       if (error) {
+        console.error('Error creating game:', error);
         toast({
           title: 'Error',
           description: 'Failed to create game',
@@ -74,7 +75,13 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
         return;
       }
 
-      onGameStart(data.id);
+      if (data) {
+        toast({
+          title: 'Success',
+          description: 'Game created successfully',
+        });
+        onGameStart(data.id);
+      }
     } catch (error) {
       console.error('Error in createGame:', error);
       toast({
@@ -89,7 +96,7 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
     if (!userId) return;
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('game_sessions')
         .update({
           player2_id: userId,
@@ -97,9 +104,12 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
           status: 'in_progress',
         })
         .eq('id', gameId)
-        .eq('status', 'waiting_for_player');
+        .eq('status', 'waiting_for_player')
+        .select()
+        .single();
 
       if (error) {
+        console.error('Error joining game:', error);
         toast({
           title: 'Error',
           description: 'Failed to join game',
@@ -108,7 +118,13 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
         return;
       }
 
-      onGameStart(gameId);
+      if (data) {
+        toast({
+          title: 'Success',
+          description: 'Joined game successfully',
+        });
+        onGameStart(gameId);
+      }
     } catch (error) {
       console.error('Error in joinGame:', error);
       toast({
@@ -133,7 +149,8 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
           schema: 'public',
           table: 'game_sessions',
         },
-        () => {
+        (payload) => {
+          console.log('Game session changed:', payload);
           fetchGames();
         }
       )
