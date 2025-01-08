@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { GameSession } from '@/types/game';
-import { useGameCreation } from './useGameCreation';
-import { useGameJoining } from './useGameJoining';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { GameSession } from "@/types/game";
+import { useGameCreation } from "./useGameCreation";
+import { useGameJoining } from "./useGameJoining";
 
-export const useGameManagement = (userId: string | undefined, onGameStart: (gameId: string) => void) => {
+export const useGameManagement = (
+  userId: string | undefined,
+  onGameStart: (gameId: string) => void
+) => {
   const [availableGames, setAvailableGames] = useState<GameSession[]>([]);
   const [myGames, setMyGames] = useState<GameSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -13,61 +16,72 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
   const { createGame } = useGameCreation(userId, onGameStart);
   const { joinGame } = useGameJoining(userId, onGameStart);
 
-  const fetchGames = async () => {
-    if (!userId) return;
+  useEffect(() => {
+    console.log("useGameManagement effect running with userId:", userId);
 
-    try {
-      const { data: availableData, error: availableError } = await supabase
-        .from('game_sessions')
-        .select('*')
-        .eq('status', 'waiting_for_player')
-        .neq('player1_id', userId);
+    const fetchGames = async () => {
+      try {
+        setIsLoading(true);
+        console.log("Fetching games...");
 
-      if (availableError) {
-        console.error('Error fetching available games:', availableError);
-        return;
+        if (!userId) return;
+
+        const { data: availableData, error: availableError } = await supabase
+          .from("game_sessions")
+          .select("*")
+          .eq("status", "waiting_for_player")
+          .neq("player1_id", userId);
+
+        if (availableError) {
+          console.error("Error fetching available games:", availableError);
+          return;
+        }
+
+        const { data: myGamesData, error: myGamesError } = await supabase
+          .from("game_sessions")
+          .select("*")
+          .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+          .order("created_at", { ascending: false });
+
+        if (myGamesError) {
+          console.error("Error fetching my games:", myGamesError);
+          return;
+        }
+
+        setAvailableGames(availableData || []);
+        setMyGames(myGamesData || []);
+        setIsLoading(false);
+        console.log("Finished loading games");
+      } catch (error) {
+        console.error("Error fetching games:", error);
+      } finally {
+        setIsLoading(false);
+        console.log("Finished loading games");
       }
+    };
 
-      const { data: myGamesData, error: myGamesError } = await supabase
-        .from('game_sessions')
-        .select('*')
-        .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
-        .order('created_at', { ascending: false });
-
-      if (myGamesError) {
-        console.error('Error fetching my games:', myGamesError);
-        return;
-      }
-
-      setAvailableGames(availableData || []);
-      setMyGames(myGamesData || []);
+    if (userId) {
+      fetchGames();
+    } else {
+      console.log("No userId, skipping fetch");
       setIsLoading(false);
-    } catch (error) {
-      console.error('Error in fetchGames:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch games',
-        variant: 'destructive',
-      });
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
-    
-    fetchGames();
 
     const channel = supabase
-      .channel('game_changes')
+      .channel("game_changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'game_sessions',
+          event: "*",
+          schema: "public",
+          table: "game_sessions",
         },
         () => {
-          console.log('Game session changed, fetching updates');
+          console.log("Game session changed, fetching updates");
           fetchGames();
         }
       )

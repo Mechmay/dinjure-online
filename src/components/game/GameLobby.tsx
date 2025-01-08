@@ -1,9 +1,10 @@
-import { Button } from '@/components/ui/button';
-import { useAuth } from '../auth/AuthProvider';
-import { Loader2 } from 'lucide-react';
-import { useGameManagement } from '@/hooks/useGameManagement';
-import AvailableGamesList from './AvailableGamesList';
-import MyGamesList from './MyGamesList';
+import { Button } from "@/components/ui/button";
+import { useAuth } from "../auth/AuthProvider";
+import { Loader2 } from "lucide-react";
+import { useGameManagement } from "@/hooks/useGameManagement";
+import AvailableGamesList from "./AvailableGamesList";
+import MyGamesList from "./MyGamesList";
+import { useEffect } from "react";
 
 interface GameLobbyProps {
   onGameStart: (gameId: string) => void;
@@ -11,15 +12,20 @@ interface GameLobbyProps {
 
 const GameLobby = ({ onGameStart }: GameLobbyProps) => {
   const { user } = useAuth();
-  const {
-    availableGames,
-    myGames,
-    isLoading,
-    createGame,
-    joinGame,
-  } = useGameManagement(user?.id, onGameStart);
+  const { availableGames, myGames, isLoading, createGame, joinGame } =
+    useGameManagement(user?.id, onGameStart);
+
+  useEffect(() => {
+    console.log("GameLobby state:", {
+      user,
+      isLoading,
+      availableGames,
+      myGames,
+    });
+  }, [user, isLoading, availableGames, myGames]);
 
   if (isLoading) {
+    console.log("GameLobby is in loading state");
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <Loader2 className="h-8 w-8 animate-spin text-game-accent" />
