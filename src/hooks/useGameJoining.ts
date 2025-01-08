@@ -1,98 +1,64 @@
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-export const useGameJoining = (userId: string | undefined, onGameStart: (gameId: string) => void) => {
+export const useGameJoining = (
+  userId: string | undefined,
+  onGameStart: (gameId: string) => void
+) => {
   const { toast } = useToast();
 
   const joinGame = async (gameId: string) => {
-    if (!userId) {
-      toast({
-        title: 'Error',
-        description: 'You must be logged in to join a game',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     try {
-      // First check if the game exists and is available
-      const { data: game, error: fetchError } = await supabase
-        .from('game_sessions')
-        .select('*')
-        .eq('id', gameId)
-        .maybeSingle();
+      console.log("Attempting to join game:", gameId, "as user:", userId);
 
-      if (fetchError) {
-        console.error('Error fetching game:', fetchError);
-        toast({
-          title: 'Error',
-          description: 'Failed to check game status',
-          variant: 'destructive',
-        });
-        return;
-      }
+      // First verify the game is still available
+      const { data: gameCheck } = await supabase
+        .from("game_sessions")
+        .select("*")
+        .eq("id", gameId)
+        .eq("status", "waiting_for_player")
+        .single();
 
-      if (!game) {
+      if (!gameCheck) {
+        console.log("Game no longer available");
         toast({
-          title: 'Error',
-          description: 'Game not found',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      if (game.status !== 'waiting_for_player') {
-        toast({
-          title: 'Error',
-          description: 'Game is no longer available',
-          variant: 'destructive',
+          title: "Error",
+          description: "This game is no longer available",
+          variant: "destructive",
         });
         return;
       }
 
       // Try to join the game
-      const { data: updatedGame, error: updateError } = await supabase
-        .from('game_sessions')
+      const { data: joinedGame, error: joinError } = await supabase
+        .from("game_sessions")
         .update({
           player2_id: userId,
-          player2_number: [],
-          status: 'in_progress',
+          status: "in_progress",
+          current_turn: userId,
         })
-        .eq('id', gameId)
-        .eq('status', 'waiting_for_player')
+        .eq("id", gameId)
         .select()
-        .maybeSingle();
+        .single();
 
-      if (updateError) {
-        console.error('Error joining game:', updateError);
+      if (joinError) {
+        console.error("Error joining game:", joinError);
         toast({
-          title: 'Error',
-          description: 'Failed to join game',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to join game",
+          variant: "destructive",
         });
         return;
       }
 
-      if (!updatedGame) {
-        toast({
-          title: 'Error',
-          description: 'Game was taken by another player',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Joined game successfully',
-      });
+      console.log("Successfully joined game:", joinedGame);
       onGameStart(gameId);
     } catch (error) {
-      console.error('Error in joinGame:', error);
+      console.error("Error in joinGame:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to join game',
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     }
   };
