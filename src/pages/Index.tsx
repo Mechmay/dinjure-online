@@ -11,6 +11,7 @@ import GameControls from '@/components/game/GameControls';
 import GuessHistory from '@/components/GuessHistory';
 import GameInstructions from '@/components/GameInstructions';
 import GameLobby from '@/components/game/GameLobby';
+import NumberDisplay from '@/components/game/NumberDisplay';
 
 type GameMode = 'computer' | 'online' | 'offline' | null;
 
@@ -146,18 +147,22 @@ const Index = () => {
           needsToSetNumbers={false}
         />
 
-        <NumberSelection
-          selectedNumbers={selectedNumbers}
-          onNumberClick={handleNumberClick}
-          disabled={gameWon}
-        />
+        <div className="space-y-6">
+          <NumberDisplay selectedNumbers={selectedNumbers} />
 
-        <GameControls
-          onSubmit={checkGuess}
-          onExit={handleExitGame}
-          submitDisabled={selectedNumbers.length !== 4 || gameWon}
-          isSettingNumbers={false}
-        />
+          <NumberSelection
+            selectedNumbers={selectedNumbers}
+            onNumberClick={handleNumberClick}
+            disabled={gameWon}
+          />
+
+          <GameControls
+            onSubmit={checkGuess}
+            onExit={handleExitGame}
+            submitDisabled={selectedNumbers.length !== 4 || gameWon}
+            isSettingNumbers={false}
+          />
+        </div>
 
         <GuessHistory guesses={guesses} />
       </div>
