@@ -6,6 +6,7 @@ import GameActions from './GameActions';
 import GameBoard from './GameBoard';
 import GameInstructions from '../GameInstructions';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 interface OnlineGameProps {
   gameId: string;
@@ -13,35 +14,12 @@ interface OnlineGameProps {
 }
 
 const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
-  const [gameSession, setGameSession] = useState(null);
+  const [gameSession, setGameSession] = useState<any>(null);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [guesses, setGuesses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
-        <p>Please log in to play.</p>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-game-accent" />
-      </div>
-    );
-  }
-
-  if (!gameSession) {
-    return (
-      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
-        <p>Game not found or you don't have access to it.</p>
-      </div>
-    );
-  }
+  const { toast } = useToast();
 
   const handleNumberClick = (number: number) => {
     if (selectedNumbers.includes(number)) {
@@ -68,6 +46,30 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
       await GameActions.submitGuess(actionProps);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
+        <p>Please log in to play.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-game-accent" />
+      </div>
+    );
+  }
+
+  if (!gameSession) {
+    return (
+      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
+        <p>Game not found or you don't have access to it.</p>
+      </div>
+    );
+  }
 
   const isPlayer1 = user.id === gameSession.player1_id;
   const isMyTurn = user.id === gameSession.current_turn;

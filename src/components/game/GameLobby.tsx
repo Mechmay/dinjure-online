@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '../auth/AuthProvider';
+import { Loader2 } from 'lucide-react';
 
 interface GameSession {
   id: string;
@@ -14,12 +15,12 @@ interface GameSession {
 const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) => {
   const [availableGames, setAvailableGames] = useState<GameSession[]>([]);
   const [myGames, setMyGames] = useState<GameSession[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchGames = async () => {
-      // Fetch available games (waiting for players, excluding user's own games)
+  const fetchGames = async () => {
+    try {
       const { data: availableData, error: availableError } = await supabase
         .from('game_sessions')
         .select('*')
@@ -31,7 +32,6 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
         return;
       }
 
-      // Fetch user's games (created by user or participating in)
       const { data: myGamesData, error: myGamesError } = await supabase
         .from('game_sessions')
         .select('*')
@@ -45,8 +45,20 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
 
       setAvailableGames(availableData || []);
       setMyGames(myGamesData || []);
-    };
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error in fetchGames:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch games',
+        variant: 'destructive',
+      });
+    }
+  };
 
+  useEffect(() => {
+    if (!user?.id) return;
+    
     fetchGames();
 
     const channel = supabase
@@ -72,70 +84,81 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
   const createGame = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('game_sessions')
-      .insert([
-        {
-          player1_id: user.id,
-          player1_number: [],
-          status: 'waiting_for_player',
-        },
-      ])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('game_sessions')
+        .insert([
+          {
+            player1_id: user.id,
+            player1_number: [],
+            status: 'waiting_for_player',
+            current_turn: user.id,
+          },
+        ])
+        .select()
+        .single();
 
-    if (error) {
+      if (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to create game',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      onGameStart(data.id);
+    } catch (error) {
+      console.error('Error in createGame:', error);
       toast({
         title: 'Error',
         description: 'Failed to create game',
         variant: 'destructive',
       });
-      return;
     }
-
-    onGameStart(data.id);
   };
 
   const joinGame = async (gameId: string) => {
     if (!user) return;
 
-    const { error } = await supabase
-      .from('game_sessions')
-      .update({
-        player2_id: user.id,
-        status: 'in_progress',
-      })
-      .eq('id', gameId)
-      .eq('status', 'waiting_for_player');
+    try {
+      const { error } = await supabase
+        .from('game_sessions')
+        .update({
+          player2_id: user.id,
+          player2_number: [],
+          status: 'in_progress',
+        })
+        .eq('id', gameId)
+        .eq('status', 'waiting_for_player');
 
-    if (error) {
+      if (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to join game',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      onGameStart(gameId);
+    } catch (error) {
+      console.error('Error in joinGame:', error);
       toast({
         title: 'Error',
         description: 'Failed to join game',
         variant: 'destructive',
       });
-      return;
-    }
-
-    onGameStart(gameId);
-  };
-
-  const getGameStatus = (game: GameSession) => {
-    switch (game.status) {
-      case 'waiting_for_player':
-        return 'Waiting for opponent...';
-      case 'in_progress':
-        return 'Game in progress';
-      case 'completed':
-        return 'Game completed';
-      default:
-        return '';
     }
   };
 
-  const continueGame = (gameId: string) => {
-    onGameStart(gameId);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin text-game-accent" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -159,10 +182,16 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
             >
               <div className="space-y-1">
                 <span className="text-white">Game #{game.id.slice(0, 8)}</span>
-                <p className="text-sm text-white/60">{getGameStatus(game)}</p>
+                <p className="text-sm text-white/60">
+                  {game.status === 'waiting_for_player'
+                    ? 'Waiting for opponent...'
+                    : game.status === 'in_progress'
+                    ? 'Game in progress'
+                    : 'Game completed'}
+                </p>
               </div>
               <Button
-                onClick={() => continueGame(game.id)}
+                onClick={() => onGameStart(game.id)}
                 className="bg-game-accent text-game-background hover:bg-game-accent/80"
               >
                 Continue Game
@@ -174,24 +203,25 @@ const GameLobby = ({ onGameStart }: { onGameStart: (gameId: string) => void }) =
 
       <div className="space-y-4">
         <h3 className="text-xl font-semibold text-game-accent">Available Games</h3>
-        {availableGames.map((game) => (
-          <div
-            key={game.id}
-            className="flex justify-between items-center p-4 border-2 border-game-accent/20 rounded-lg bg-white/5"
-          >
-            <div className="space-y-1">
-              <span className="text-white">Game #{game.id.slice(0, 8)}</span>
-              <p className="text-sm text-white/60">Waiting for opponent...</p>
-            </div>
-            <Button
-              onClick={() => joinGame(game.id)}
-              className="bg-game-accent text-game-background hover:bg-game-accent/80"
+        {availableGames.length > 0 ? (
+          availableGames.map((game) => (
+            <div
+              key={game.id}
+              className="flex justify-between items-center p-4 border-2 border-game-accent/20 rounded-lg bg-white/5"
             >
-              Join Game
-            </Button>
-          </div>
-        ))}
-        {availableGames.length === 0 && (
+              <div className="space-y-1">
+                <span className="text-white">Game #{game.id.slice(0, 8)}</span>
+                <p className="text-sm text-white/60">Waiting for opponent...</p>
+              </div>
+              <Button
+                onClick={() => joinGame(game.id)}
+                className="bg-game-accent text-game-background hover:bg-game-accent/80"
+              >
+                Join Game
+              </Button>
+            </div>
+          ))
+        ) : (
           <p className="text-white/60 text-center py-8 bg-white/5 rounded-lg border-2 border-dashed border-game-accent/20">
             No games available. Create one to start playing!
           </p>

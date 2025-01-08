@@ -11,8 +11,8 @@ interface GameStateProps {
 const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) => {
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchGame = async () => {
+  const fetchGameData = async () => {
+    try {
       const { data: gameData, error: gameError } = await supabase
         .from('game_sessions')
         .select('*')
@@ -52,9 +52,18 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
         player: guess.player_id === gameData.player1_id ? 1 : 2
       }));
       onGuessesUpdate(processedGuesses);
-    };
+    } catch (error) {
+      console.error('Error in fetchGameData:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load game data',
+        variant: 'destructive',
+      });
+    }
+  };
 
-    fetchGame();
+  useEffect(() => {
+    fetchGameData();
 
     const channel = supabase
       .channel('game_updates')
@@ -79,7 +88,7 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
           filter: `game_id=eq.${gameId}`,
         },
         () => {
-          fetchGame();
+          fetchGameData();
         }
       )
       .subscribe();
@@ -87,7 +96,7 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [gameId, onGameUpdate, onGuessesUpdate, toast]);
+  }, [gameId]);
 
   return null;
 };
