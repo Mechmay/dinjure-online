@@ -63,7 +63,7 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
           },
         ])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating game:', error);
@@ -96,7 +96,35 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase
+      // First check if the game exists and is available
+      const { data: gameCheck, error: checkError } = await supabase
+        .from('game_sessions')
+        .select()
+        .eq('id', gameId)
+        .eq('status', 'waiting_for_player')
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking game:', checkError);
+        toast({
+          title: 'Error',
+          description: 'Failed to check game status',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (!gameCheck) {
+        toast({
+          title: 'Error',
+          description: 'Game not found or no longer available',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // If game exists and is available, try to join it
+      const { data: updatedGame, error: updateError } = await supabase
         .from('game_sessions')
         .update({
           player2_id: userId,
@@ -106,10 +134,10 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
         .eq('id', gameId)
         .eq('status', 'waiting_for_player')
         .select()
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error joining game:', error);
+      if (updateError) {
+        console.error('Error joining game:', updateError);
         toast({
           title: 'Error',
           description: 'Failed to join game',
@@ -118,13 +146,20 @@ export const useGameManagement = (userId: string | undefined, onGameStart: (game
         return;
       }
 
-      if (data) {
+      if (!updatedGame) {
         toast({
-          title: 'Success',
-          description: 'Joined game successfully',
+          title: 'Error',
+          description: 'Game was taken by another player',
+          variant: 'destructive',
         });
-        onGameStart(gameId);
+        return;
       }
+
+      toast({
+        title: 'Success',
+        description: 'Joined game successfully',
+      });
+      onGameStart(gameId);
     } catch (error) {
       console.error('Error in joinGame:', error);
       toast({
