@@ -17,7 +17,7 @@ const GameState = ({ gameId, onGameUpdate, onGuessesUpdate }: GameStateProps) =>
         .from('game_sessions')
         .select('*')
         .eq('id', gameId)
-        .single();
+        .maybeSingle();
 
       if (gameError) {
         console.error('Error fetching game:', gameError);

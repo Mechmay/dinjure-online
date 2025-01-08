@@ -5,18 +5,25 @@ export const useGameJoining = (userId: string | undefined, onGameStart: (gameId:
   const { toast } = useToast();
 
   const joinGame = async (gameId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to join a game',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     try {
-      // First check if the game exists
-      const { data: gameCheck, error: checkError } = await supabase
+      // First check if the game exists and is available
+      const { data: game, error: fetchError } = await supabase
         .from('game_sessions')
-        .select()
+        .select('*')
         .eq('id', gameId)
         .maybeSingle();
 
-      if (checkError) {
-        console.error('Error checking game:', checkError);
+      if (fetchError) {
+        console.error('Error fetching game:', fetchError);
         toast({
           title: 'Error',
           description: 'Failed to check game status',
@@ -25,7 +32,7 @@ export const useGameJoining = (userId: string | undefined, onGameStart: (gameId:
         return;
       }
 
-      if (!gameCheck) {
+      if (!game) {
         toast({
           title: 'Error',
           description: 'Game not found',
@@ -34,7 +41,7 @@ export const useGameJoining = (userId: string | undefined, onGameStart: (gameId:
         return;
       }
 
-      if (gameCheck.status !== 'waiting_for_player') {
+      if (game.status !== 'waiting_for_player') {
         toast({
           title: 'Error',
           description: 'Game is no longer available',
@@ -43,7 +50,7 @@ export const useGameJoining = (userId: string | undefined, onGameStart: (gameId:
         return;
       }
 
-      // If game exists and is available, try to join it
+      // Try to join the game
       const { data: updatedGame, error: updateError } = await supabase
         .from('game_sessions')
         .update({

@@ -6,7 +6,7 @@ import GameActions from './GameActions';
 import GameBoard from './GameBoard';
 import GameInstructions from '../GameInstructions';
 import { Loader2 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface OnlineGameProps {
   gameId: string;
