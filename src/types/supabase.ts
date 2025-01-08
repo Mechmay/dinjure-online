@@ -9,4 +9,4 @@ export interface GameSession {
   // ... other fields
 }
 
-export type GameSessionPayload = RealtimePostgresChangesPayload<GameSession>; 
+export type GameSessionPayload = RealtimePostgresChangesPayload<GameSession>;
