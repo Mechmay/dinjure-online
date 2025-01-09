@@ -16,56 +16,60 @@ export const useGameManagement = (
   const { createGame } = useGameCreation(userId, onGameStart);
   const { joinGame } = useGameJoining(userId, onGameStart);
 
-  useEffect(() => {
-    console.log("useGameManagement effect running with userId:", userId);
+  const fetchGames = async () => {
+    try {
+      setIsLoading(true);
+      console.log("Fetching games...");
 
-    const fetchGames = async () => {
-      try {
-        setIsLoading(true);
-        console.log("Fetching games...");
+      if (!userId) return;
 
-        if (!userId) return;
+      const { data: availableData, error: availableError } = await supabase
+        .from("game_sessions")
+        .select("*")
+        .eq("status", "waiting_for_player")
+        .neq("player1_id", userId);
 
-        const { data: availableData, error: availableError } = await supabase
-          .from("game_sessions")
-          .select("*")
-          .eq("status", "waiting_for_player")
-          .neq("player1_id", userId);
-
-        if (availableError) {
-          console.error("Error fetching available games:", availableError);
-          return;
-        }
-
-        const { data: myGamesData, error: myGamesError } = await supabase
-          .from("game_sessions")
-          .select("*")
-          .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
-          .order("created_at", { ascending: false });
-
-        if (myGamesError) {
-          console.error("Error fetching my games:", myGamesError);
-          return;
-        }
-
-        setAvailableGames(availableData || []);
-        setMyGames(myGamesData || []);
-        setIsLoading(false);
-        console.log("Finished loading games");
-      } catch (error) {
-        console.error("Error fetching games:", error);
-      } finally {
-        setIsLoading(false);
-        console.log("Finished loading games");
+      if (availableError) {
+        console.error("Error fetching available games:", availableError);
+        return;
       }
-    };
 
+      const { data: myGamesData, error: myGamesError } = await supabase
+        .from("game_sessions")
+        .select("*")
+        .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+        .order("created_at", { ascending: false });
+
+      if (myGamesError) {
+        console.error("Error fetching my games:", myGamesError);
+        return;
+      }
+
+      setAvailableGames(availableData || []);
+      setMyGames(myGamesData || []);
+    } catch (error) {
+      console.error("Error fetching games:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (userId) {
       fetchGames();
     } else {
-      console.log("No userId, skipping fetch");
       setIsLoading(false);
     }
+  }, [userId]);
+
+  useEffect(() => {
+    const handleGameCreated = () => {
+      console.log("Game created event received");
+      fetchGames();
+    };
+
+    window.addEventListener("game_created", handleGameCreated);
+    return () => window.removeEventListener("game_created", handleGameCreated);
   }, [userId]);
 
   useEffect(() => {
@@ -129,15 +133,6 @@ export const useGameManagement = (
       });
     }
   };
-
-  useEffect(() => {
-    const handleGameCreated = () => {
-      fetchGames(); // Refresh the games list
-    };
-
-    window.addEventListener("game_created", handleGameCreated);
-    return () => window.removeEventListener("game_created", handleGameCreated);
-  }, []);
 
   return {
     availableGames,
