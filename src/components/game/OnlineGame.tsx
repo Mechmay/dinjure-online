@@ -81,23 +81,35 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
     }
 
     try {
+      console.log("Game Data:", gameData); // Debug log
+      console.log("Current User:", user?.id); // Debug log
+
       // Get the target numbers based on which player we are
       const targetNumbers =
         user?.id === gameData.player1_id
           ? gameData.player2_number
           : gameData.player1_number;
 
+      console.log("Target Numbers:", targetNumbers); // Debug log
+      console.log("Selected Numbers:", selectedNumbers); // Debug log
+
       // Calculate dead and injured
       let dead = 0;
       let injured = 0;
 
-      selectedNumbers.forEach((num, index) => {
-        if (num === targetNumbers[index]) {
+      // Make sure we're comparing numbers, not strings
+      const targetNumArray = targetNumbers.map(Number);
+      const selectedNumArray = selectedNumbers.map(Number);
+
+      selectedNumArray.forEach((num, index) => {
+        if (num === targetNumArray[index]) {
           dead++;
-        } else if (targetNumbers.includes(num)) {
+        } else if (targetNumArray.includes(num)) {
           injured++;
         }
       });
+
+      console.log("Calculated Results:", { dead, injured }); // Debug log
 
       // Submit the guess with the results
       const { error: guessError } = await supabase.from("guesses").insert({
