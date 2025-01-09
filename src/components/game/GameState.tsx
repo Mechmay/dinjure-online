@@ -67,30 +67,17 @@ const GameState = ({
     fetchGameData();
 
     const channel = supabase
-      .channel("game_changes")
+      .channel("game_updates")
       .on(
         "postgres_changes",
         {
-          event: "*",
-          schema: "public",
-          table: "game_sessions",
-          filter: `id=eq.${gameId}`,
-        },
-        () => {
-          console.log("Game session changed, fetching updates");
-          fetchGameData();
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "guesses",
           filter: `game_id=eq.${gameId}`,
         },
         () => {
-          console.log("New guess received, fetching updates");
+          console.log("New guess detected");
           fetchGameData();
         }
       )
