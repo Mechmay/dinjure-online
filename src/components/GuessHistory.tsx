@@ -1,49 +1,60 @@
-import React from 'react';
-import { useTheme } from './theme/ThemeProvider';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { useTheme } from "./theme/ThemeProvider";
+import { cn } from "@/lib/utils";
 
 interface GuessHistoryProps {
-  guesses: {
-    numbers: number[];
-    dead: number;
-    injured: number;
-    player?: number;  // Added player prop for offline mode
-  }[];
+  guesses: any[];
+  currentPlayerId?: string;
+  player1Id?: string;
+  player2Id?: string;
 }
 
-const GuessHistory: React.FC<GuessHistoryProps> = ({ guesses }) => {
-  const { theme } = useTheme();
-  
+const GuessHistory = ({
+  guesses,
+  currentPlayerId,
+  player1Id,
+  player2Id,
+}: GuessHistoryProps) => {
   return (
-    <div className="space-y-2">
-      {guesses.map((guess, index) => (
-        <div
-          key={index}
-          className={cn(
-            'p-2 rounded transition-colors',
-            theme === 'light' 
-              ? 'bg-white border border-gray-200' 
-              : 'bg-white/5 border border-game-accent/20',
-            guess.player === 1 && 'border-l-4 border-l-blue-500',
-            guess.player === 2 && 'border-l-4 border-l-red-500',
-            !guess.player && 'border-l-4 border-l-purple-500' // For computer mode
-          )}
-        >
-          <span className={cn(
-            guess.player === 1 && 'text-blue-500',
-            guess.player === 2 && 'text-red-500',
-            !guess.player && 'text-purple-500',
-            theme === 'light' ? 'text-opacity-90' : 'text-opacity-100'
-          )}>
-            {guess.numbers.join(' ')} -{' '}
-          </span>
-          <span className={theme === 'light' ? 'text-gray-600' : 'text-game-accent'}>
-            {guess.dead === 4
-              ? '4 Dead! Dinjure!'
-              : `${guess.dead} Dead, ${guess.injured} Injured`}
-          </span>
-        </div>
-      ))}
+    <div className="space-y-4">
+      <h3 className="text-xl font-semibold text-game-accent">Guess History</h3>
+      <div className="space-y-2">
+        {guesses.map((guess, index) => {
+          const isMyGuess = guess.player_id === currentPlayerId;
+          const isPlayer1 = guess.player_id === player1Id;
+
+          return (
+            <div
+              key={index}
+              className={`p-4 rounded-lg ${
+                isMyGuess
+                  ? "bg-game-accent/20 border-2 border-game-accent/40"
+                  : "bg-white/5 border-2 border-white/20"
+              }`}
+            >
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-sm ${
+                      isPlayer1 ? "text-blue-400" : "text-red-400"
+                    }`}
+                  >
+                    {isPlayer1 ? "Player 1" : "Player 2"}
+                  </span>
+                  <span className="text-white">{guess.numbers.join(", ")}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-green-400">{guess.dead} Dead</span>
+                  <span className="mx-2">•</span>
+                  <span className="text-yellow-400">
+                    {guess.injured} Injured
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

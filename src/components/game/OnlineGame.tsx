@@ -192,7 +192,12 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
           />
         </div>
 
-        <GuessHistory guesses={guesses} />
+        <GuessHistory
+          guesses={guesses}
+          currentPlayerId={user?.id}
+          player1Id={gameData?.player1_id}
+          player2Id={gameData?.player2_id}
+        />
       </div>
     </div>
   );
