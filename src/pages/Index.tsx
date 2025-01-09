@@ -129,6 +129,13 @@ const Index = () => {
   if (!user) return null;
 
   if (!gameMode) {
+    const savedGameId = localStorage.getItem("onlineGameId");
+    if (savedGameId) {
+      setGameMode("online");
+      setOnlineGameId(savedGameId);
+      return null;
+    }
+
     return (
       <GameModeSelection
         onModeSelect={(mode) => {
