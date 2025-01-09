@@ -48,13 +48,25 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
     }
 
     try {
-      const { error } = await supabase.from("guesses").insert({
+      const { error: guessError } = await supabase.from("guesses").insert({
         game_id: gameId,
         player_id: user?.id,
         numbers: selectedNumbers,
       });
 
-      if (error) throw error;
+      if (guessError) throw guessError;
+
+      const { error: updateError } = await supabase
+        .from("game_sessions")
+        .update({
+          current_turn:
+            gameData.player1_id === user?.id
+              ? gameData.player2_id
+              : gameData.player1_id,
+        })
+        .eq("id", gameId);
+
+      if (updateError) throw updateError;
 
       setSelectedNumbers([]);
     } catch (error) {
@@ -68,7 +80,7 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
   };
 
   const isMyTurn = gameData?.current_turn === user?.id;
-  const isSettingNumbers = false; // We'll implement this later
+  const isSettingNumbers = false;
 
   return (
     <div className="min-h-screen bg-game-background text-white p-4">
@@ -81,7 +93,7 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
 
         <GameHeader
           gameWon={false}
-          currentPlayer={gameData?.current_turn === user?.id ? 1 : 2}
+          currentPlayer={isMyTurn ? 1 : 2}
           needsToSetNumbers={isSettingNumbers}
         />
 
@@ -91,15 +103,13 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
           <NumberSelection
             selectedNumbers={selectedNumbers}
             onNumberClick={handleNumberClick}
-            disabled={!isMyTurn || isSettingNumbers}
+            disabled={!isMyTurn}
           />
 
           <GameControls
             onSubmit={submitGuess}
             onExit={onExit}
-            submitDisabled={
-              selectedNumbers.length !== 4 || !isMyTurn || isSettingNumbers
-            }
+            submitDisabled={!isMyTurn || selectedNumbers.length !== 4}
             isSettingNumbers={isSettingNumbers}
           />
         </div>
