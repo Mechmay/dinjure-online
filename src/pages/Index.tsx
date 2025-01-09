@@ -114,6 +114,10 @@ const Index = () => {
     }
   };
 
+  const handleExitLobby = () => {
+    setGameMode(null);
+  };
+
   if (!user) return null;
 
   if (!gameMode) {
@@ -129,7 +133,7 @@ const Index = () => {
       <div className="min-h-screen bg-game-background text-white p-4">
         <div className="container max-w-2xl mx-auto space-y-8">
           <GameInstructions />
-          <GameLobby onGameStart={handleGameStart} />
+          <GameLobby onGameStart={handleGameStart} onBack={handleExitLobby} />
         </div>
       </div>
     );
