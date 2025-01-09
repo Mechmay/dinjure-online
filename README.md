@@ -56,6 +56,7 @@ This project is built with .
 
 - Vite
 - TypeScript
+  <<<<<<< HEAD
 - React
 - shadcn-ui
 - Tailwind CSS
@@ -66,4 +67,8 @@ Simply open [Lovable](https://lovable.dev/projects/fb3701cc-9b8d-43e7-b6f3-c6b2b
 
 ## I want to use a custom domain - is that possible?
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+# We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+- Supabase (Backend & Real-time updates)
+- Tailwind CSS.
+  > > > > > > > stable-version
