@@ -58,6 +58,7 @@ const GameState = ({
   useEffect(() => {
     fetchGameData();
 
+    // Subscribe to both game and guess changes
     const channel = supabase
       .channel(`game_${gameId}`)
       .on(
@@ -68,21 +69,30 @@ const GameState = ({
           table: "game_sessions",
           filter: `id=eq.${gameId}`,
         },
-        () => fetchGameData()
+        () => {
+          console.log("Game updated, fetching new data");
+          fetchGameData();
+        }
       )
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
           schema: "public",
           table: "guesses",
           filter: `game_id=eq.${gameId}`,
         },
-        () => fetchGameData()
+        (payload) => {
+          console.log("New guess received:", payload);
+          fetchGameData(); // Refresh all data when a new guess is made
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Subscription status:", status);
+      });
 
     return () => {
+      console.log("Cleaning up subscriptions");
       supabase.removeChannel(channel);
     };
   }, [gameId]);
