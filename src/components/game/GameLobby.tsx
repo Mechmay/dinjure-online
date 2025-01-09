@@ -25,6 +25,7 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
 
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [isSelectingNumbers, setIsSelectingNumbers] = useState(false);
+  const [joiningGameId, setJoiningGameId] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("GameLobby state:", {
@@ -39,11 +40,21 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
     setIsSelectingNumbers(true);
   };
 
+  const handleJoinGame = (gameId: string) => {
+    setJoiningGameId(gameId);
+    setIsSelectingNumbers(true);
+  };
+
   const handleNumberSubmit = () => {
     if (selectedNumbers.length === 4) {
-      createGame(selectedNumbers);
+      if (joiningGameId) {
+        joinGame(joiningGameId, selectedNumbers);
+      } else {
+        createGame(selectedNumbers);
+      }
       setSelectedNumbers([]);
       setIsSelectingNumbers(false);
+      setJoiningGameId(null);
     }
   };
 
@@ -51,7 +62,9 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-game-accent">
-          Select Your Numbers
+          {joiningGameId
+            ? "Select Your Numbers to Join"
+            : "Select Your Numbers"}
         </h2>
         <NumberSelection
           selectedNumbers={selectedNumbers}
@@ -69,7 +82,7 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
           disabled={selectedNumbers.length !== 4}
           className="bg-game-accent text-game-background hover:bg-game-accent/80"
         >
-          Create Game
+          {joiningGameId ? "Join Game" : "Create Game"}
         </Button>
       </div>
     );
@@ -141,7 +154,7 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
         ))}
       </div>
 
-      <AvailableGamesList games={availableGames} onJoinGame={joinGame} />
+      <AvailableGamesList games={availableGames} onJoinGame={handleJoinGame} />
     </div>
   );
 };

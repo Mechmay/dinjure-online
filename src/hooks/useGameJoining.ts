@@ -7,8 +7,17 @@ export const useGameJoining = (
 ) => {
   const { toast } = useToast();
 
-  const joinGame = async (gameId: string) => {
+  const joinGame = async (gameId: string, initialNumbers?: number[]) => {
     try {
+      if (!initialNumbers || initialNumbers.length !== 4) {
+        toast({
+          title: "Error",
+          description: "Please select 4 numbers first",
+          variant: "destructive",
+        });
+        return;
+      }
+
       console.log("Attempting to join game:", gameId, "as user:", userId);
 
       // First verify the game is still available
@@ -34,6 +43,7 @@ export const useGameJoining = (
         .from("game_sessions")
         .update({
           player2_id: userId,
+          player2_number: initialNumbers,
           status: "in_progress",
           current_turn: userId,
         })
@@ -52,8 +62,6 @@ export const useGameJoining = (
       }
 
       console.log("Successfully joined game:", joinedGame);
-
-      // Important: Call onGameStart to transition to the game view
       onGameStart(gameId);
 
       toast({
