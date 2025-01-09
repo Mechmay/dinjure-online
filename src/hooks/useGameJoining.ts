@@ -45,7 +45,6 @@ export const useGameJoining = (
           player2_id: userId,
           player2_number: initialNumbers,
           status: "in_progress",
-          current_turn: userId,
         })
         .eq("id", gameId)
         .select()

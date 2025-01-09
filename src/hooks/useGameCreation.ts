@@ -25,6 +25,7 @@ export const useGameCreation = (
           player1_id: userId,
           player1_number: initialNumbers,
           status: "waiting_for_player",
+          current_turn: userId,
         })
         .select()
         .single();
