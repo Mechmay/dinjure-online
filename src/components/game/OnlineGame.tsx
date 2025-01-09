@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { useAuth } from '../auth/AuthProvider';
-import GameHeader from './GameHeader';
-import GameState from './GameState';
-import GameActions from './GameActions';
-import GameBoard from './GameBoard';
-import GameInstructions from '../GameInstructions';
-import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import GameHeader from "./GameHeader";
+import NumberSelection from "./NumberSelection";
+import NumberDisplay from "./NumberDisplay";
+import GameControls from "./GameControls";
+import GuessHistory from "@/components/GuessHistory";
+import GameState from "./GameState";
 
 interface OnlineGameProps {
   gameId: string;
@@ -14,12 +15,19 @@ interface OnlineGameProps {
 }
 
 const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
-  const [gameSession, setGameSession] = useState<any>(null);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+  const [gameData, setGameData] = useState<any>(null);
   const [guesses, setGuesses] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  const handleGameUpdate = (data: any) => {
+    setGameData(data);
+  };
+
+  const handleGuessesUpdate = (data: any[]) => {
+    setGuesses(data);
+  };
 
   const handleNumberClick = (number: number) => {
     if (selectedNumbers.includes(number)) {
@@ -29,91 +37,74 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!gameSession || !user || selectedNumbers.length !== 4) return;
+  const submitGuess = async () => {
+    if (selectedNumbers.length !== 4) {
+      toast({
+        title: "Error",
+        description: "Please select exactly 4 numbers",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const actionProps = {
-      gameId,
-      userId: user.id,
-      selectedNumbers,
-      gameSession,
-      onSuccess: () => setSelectedNumbers([])
-    };
+    try {
+      const { error } = await supabase.from("guesses").insert({
+        game_id: gameId,
+        player_id: user?.id,
+        numbers: selectedNumbers,
+      });
 
-    if (needsToSetNumbers) {
-      await GameActions.submitNumbers(actionProps);
-    } else {
-      await GameActions.submitGuess(actionProps);
+      if (error) throw error;
+
+      setSelectedNumbers([]);
+    } catch (error) {
+      console.error("Error submitting guess:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit guess",
+        variant: "destructive",
+      });
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
-        <p>Please log in to play.</p>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-game-accent" />
-      </div>
-    );
-  }
-
-  if (!gameSession) {
-    return (
-      <div className="min-h-screen bg-game-background text-white p-4 flex items-center justify-center">
-        <p>Game not found or you don't have access to it.</p>
-      </div>
-    );
-  }
-
-  const isPlayer1 = user.id === gameSession.player1_id;
-  const isMyTurn = user.id === gameSession.current_turn;
-  const needsToSetNumbers = isPlayer1 
-    ? gameSession.player1_number.length === 0 
-    : gameSession.player2_number.length === 0;
-  const myNumbers = isPlayer1 ? gameSession.player1_number : gameSession.player2_number;
+  const isMyTurn = gameData?.current_turn === user?.id;
+  const isSettingNumbers = false; // We'll implement this later
 
   return (
     <div className="min-h-screen bg-game-background text-white p-4">
       <div className="container max-w-2xl mx-auto space-y-8">
         <GameState
           gameId={gameId}
-          onGameUpdate={(data) => {
-            setGameSession(data);
-            setIsLoading(false);
-          }}
-          onGuessesUpdate={setGuesses}
-        />
-        
-        <GameInstructions />
-        
-        <GameHeader
-          gameWon={gameSession.winner_id === user.id}
-          playerNumbers={myNumbers}
-          isOnline={true}
-          status={gameSession.status}
-          isMyTurn={isMyTurn}
-          needsToSetNumbers={needsToSetNumbers}
+          onGameUpdate={handleGameUpdate}
+          onGuessesUpdate={handleGuessesUpdate}
         />
 
-        <GameBoard
-          selectedNumbers={selectedNumbers}
-          onNumberClick={handleNumberClick}
-          onSubmit={handleSubmit}
-          onExit={onExit}
-          isDisabled={
-            gameSession.status === 'completed' ||
-            (!isMyTurn && !needsToSetNumbers)
-          }
-          isSettingNumbers={needsToSetNumbers}
-          guesses={guesses}
-          player={isPlayer1 ? 1 : 2}
+        <GameHeader
+          gameWon={false}
+          currentPlayer={gameData?.current_turn === user?.id ? 1 : 2}
+          needsToSetNumbers={isSettingNumbers}
         />
+
+        <div className="space-y-6">
+          <NumberDisplay selectedNumbers={selectedNumbers} />
+
+          <NumberSelection
+            selectedNumbers={selectedNumbers}
+            onNumberClick={handleNumberClick}
+            disabled={!isMyTurn || isSettingNumbers}
+          />
+
+          <GameControls
+            onSubmit={submitGuess}
+            onExit={onExit}
+            submitDisabled={
+              selectedNumbers.length !== 4 || !isMyTurn || isSettingNumbers
+            }
+            isSettingNumbers={isSettingNumbers}
+          />
+        </div>
+
+        <GuessHistory guesses={guesses} />
       </div>
     </div>
   );
