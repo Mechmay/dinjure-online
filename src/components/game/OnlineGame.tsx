@@ -81,14 +81,36 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
     }
 
     try {
+      // Get the target numbers based on which player we are
+      const targetNumbers =
+        user?.id === gameData.player1_id
+          ? gameData.player2_number
+          : gameData.player1_number;
+
+      // Calculate dead and injured
+      let dead = 0;
+      let injured = 0;
+
+      selectedNumbers.forEach((num, index) => {
+        if (num === targetNumbers[index]) {
+          dead++;
+        } else if (targetNumbers.includes(num)) {
+          injured++;
+        }
+      });
+
+      // Submit the guess with the results
       const { error: guessError } = await supabase.from("guesses").insert({
         game_id: gameId,
         player_id: user?.id,
         numbers: selectedNumbers,
+        dead,
+        injured,
       });
 
       if (guessError) throw guessError;
 
+      // Switch turns
       const { error: updateError } = await supabase
         .from("game_sessions")
         .update({
@@ -102,6 +124,14 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
       if (updateError) throw updateError;
 
       setSelectedNumbers([]);
+
+      // Check if game is won
+      if (dead === 4) {
+        toast({
+          title: "Congratulations!",
+          description: "You've won the game!",
+        });
+      }
     } catch (error) {
       console.error("Error submitting guess:", error);
       toast({
