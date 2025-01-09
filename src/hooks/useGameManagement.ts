@@ -94,29 +94,11 @@ export const useGameManagement = (
 
   const deleteGame = async (gameId: string) => {
     try {
-      // First check if the game exists and is deletable
-      const { data: gameCheck } = await supabase
-        .from("game_sessions")
-        .select("*")
-        .eq("id", gameId)
-        .single();
-
-      if (!gameCheck || gameCheck.player1_id !== userId) {
-        toast({
-          title: "Error",
-          description: "You can't delete this game",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Delete the game
       const { error } = await supabase
         .from("game_sessions")
         .delete()
         .eq("id", gameId)
-        .eq("player1_id", userId)
-        .eq("status", "waiting_for_player");
+        .eq("player1_id", userId);
 
       if (error) {
         console.error("Error deleting game:", error);
@@ -128,7 +110,7 @@ export const useGameManagement = (
         return;
       }
 
-      // Update local state
+      // Update local state after successful deletion
       setMyGames((prevGames) => prevGames.filter((game) => game.id !== gameId));
       setAvailableGames((prevGames) =>
         prevGames.filter((game) => game.id !== gameId)
@@ -138,24 +120,11 @@ export const useGameManagement = (
         title: "Success",
         description: "Game deleted successfully",
       });
-
-      // Verify deletion
-      const { data: verifyDelete } = await supabase
-        .from("game_sessions")
-        .select("*")
-        .eq("id", gameId)
-        .single();
-
-      if (verifyDelete) {
-        console.error("Game still exists after deletion");
-        // Refresh the games list
-        fetchGames();
-      }
     } catch (error) {
       console.error("Error in deleteGame:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "Failed to delete game",
         variant: "destructive",
       });
     }
