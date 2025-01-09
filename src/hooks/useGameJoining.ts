@@ -52,7 +52,14 @@ export const useGameJoining = (
       }
 
       console.log("Successfully joined game:", joinedGame);
+
+      // Important: Call onGameStart to transition to the game view
       onGameStart(gameId);
+
+      toast({
+        title: "Success",
+        description: "Successfully joined game",
+      });
     } catch (error) {
       console.error("Error in joinGame:", error);
       toast({
