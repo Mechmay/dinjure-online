@@ -35,7 +35,7 @@ const GuessHistory = ({
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-sm ${
+                    className={`text-sm font-semibold ${
                       isPlayer1 ? "text-blue-400" : "text-red-400"
                     }`}
                   >
@@ -44,9 +44,11 @@ const GuessHistory = ({
                   <span className="text-white">{guess.numbers.join(", ")}</span>
                 </div>
                 <div className="text-sm">
-                  <span className="text-green-400">{guess.dead} Dead</span>
+                  <span className="text-green-400 font-bold">
+                    {guess.dead} Dead
+                  </span>
                   <span className="mx-2">•</span>
-                  <span className="text-yellow-400">
+                  <span className="text-yellow-400 font-bold">
                     {guess.injured} Injured
                   </span>
                 </div>
