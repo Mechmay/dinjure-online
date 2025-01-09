@@ -26,6 +26,7 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
   };
 
   const handleGuessesUpdate = (data: any[]) => {
+    console.log("Received guesses update:", data);
     setGuesses(data);
   };
 
@@ -192,6 +193,7 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
           />
         </div>
 
+        {console.log("Current guesses:", guesses)}
         <GuessHistory
           guesses={guesses}
           currentPlayerId={user?.id}
