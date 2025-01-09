@@ -1,41 +1,69 @@
-# Dinjure - Online Number Guessing Game
+# Welcome to your Lovable project
 
-Dinjure is an engaging multiplayer number guessing game where players try to deduce each other's secret numbers through strategic guessing and deduction. The name "Dinjure" comes from the game's core mechanics of counting "Dead" and "Injured" numbers in each guess.
+## Project info
 
-## How to Play
+**URL**: https://lovable.dev/projects/fb3701cc-9b8d-43e7-b6f3-c6b2b3c12133
 
-1. **Setup**: Each player selects 4 unique numbers (0-9) as their secret code.
+## How can I edit this code?
 
-2. **Gameplay**:
-   - Players take turns making guesses about their opponent's secret numbers
-   - After each guess, the game provides feedback in two categories:
-     - **Dead**: Numbers that are correct and in the right position
-     - **Injured**: Numbers that exist in the code but are in the wrong position
+There are several ways of editing your application.
 
-3. **Example**:
-   - Secret Code: `1234`
-   - Guess: `1567`
-   - Result: `1 Dead, 0 Injured` (1 is correct and in right position, no other numbers match)
+**Use Lovable**
 
-4. **Game Modes**:
-   - **Online**: Challenge other players in real-time
-   - **Offline**: Play against a friend locally
-   - **Computer**: Test your skills against the computer
+Simply visit the [Lovable Project](https://lovable.dev/projects/fb3701cc-9b8d-43e7-b6f3-c6b2b3c12133) and start prompting.
 
-5. **Winning**: The first player to correctly guess their opponent's complete number sequence (4 Dead) wins!
+Changes made via Lovable will be committed automatically to this repo.
 
-## Features
+**Use your preferred IDE**
 
-- Real-time multiplayer gameplay
-- Multiple game modes
-- Clean and intuitive interface
-- Color-coded guess history
-- Instant feedback on guesses
-- Persistent game state (continue games after refresh)
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-## Technical Stack
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-- React
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
+```
+
+**Edit a file directly in GitHub**
+
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
+
+**Use GitHub Codespaces**
+
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with .
+
+- Vite
 - TypeScript
-- Supabase (Backend & Real-time updates)
+- React
+- shadcn-ui
 - Tailwind CSS
+
+## How can I deploy this project?
+
+Simply open [Lovable](https://lovable.dev/projects/fb3701cc-9b8d-43e7-b6f3-c6b2b3c12133) and click on Share -> Publish.
+
+## I want to use a custom domain - is that possible?
+
+We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
