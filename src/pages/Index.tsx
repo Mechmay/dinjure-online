@@ -32,6 +32,10 @@ const Index = () => {
     setGameId(null);
   };
 
+  const handleExitLobby = () => {
+    setGameMode(null); // Go back to mode selection
+  };
+
   if (gameId) {
     return <Game gameId={gameId} />;
   }
