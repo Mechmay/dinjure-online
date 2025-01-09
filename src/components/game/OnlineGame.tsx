@@ -70,6 +70,48 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
     }
   };
 
+  const submitGuess = async () => {
+    if (selectedNumbers.length !== 4) {
+      toast({
+        title: "Error",
+        description: "Please select exactly 4 numbers",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error: guessError } = await supabase.from("guesses").insert({
+        game_id: gameId,
+        player_id: user?.id,
+        numbers: selectedNumbers,
+      });
+
+      if (guessError) throw guessError;
+
+      const { error: updateError } = await supabase
+        .from("game_sessions")
+        .update({
+          current_turn:
+            gameData.player1_id === user?.id
+              ? gameData.player2_id
+              : gameData.player1_id,
+        })
+        .eq("id", gameId);
+
+      if (updateError) throw updateError;
+
+      setSelectedNumbers([]);
+    } catch (error) {
+      console.error("Error submitting guess:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit guess",
+        variant: "destructive",
+      });
+    }
+  };
+
   const isMyTurn = gameData?.current_turn === user?.id;
   const isSettingNumbers =
     gameData?.player1_id === user?.id && !gameData?.player1_number;
