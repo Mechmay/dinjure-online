@@ -101,16 +101,16 @@ export const useGameManagement = (
 
     const cleanupStaleGames = async () => {
       try {
-        // Delete games older than 10 minutes that are still waiting for players
-        const tenMinutesAgo = new Date(
-          Date.now() - 10 * 60 * 1000
+        // Delete games older than 12 hours that are still waiting for players
+        const twelveHoursAgo = new Date(
+          Date.now() - 12 * 60 * 60 * 1000
         ).toISOString();
 
         const { error } = await supabase
           .from("game_sessions")
           .delete()
           .eq("status", "waiting_for_player")
-          .lt("created_at", tenMinutesAgo);
+          .lt("created_at", twelveHoursAgo);
 
         if (error) {
           console.error("Error cleaning up stale games:", error);
@@ -123,8 +123,8 @@ export const useGameManagement = (
     // Run cleanup when component mounts
     cleanupStaleGames();
 
-    // Set up interval to run cleanup every minute
-    const cleanupInterval = setInterval(cleanupStaleGames, 60 * 1000);
+    // Set up interval to run cleanup every hour
+    const cleanupInterval = setInterval(cleanupStaleGames, 60 * 60 * 1000);
 
     return () => {
       clearInterval(cleanupInterval);
