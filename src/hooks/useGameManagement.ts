@@ -111,6 +111,14 @@ export const useGameManagement = (
         return;
       }
 
+      const { data: myGamesData } = await supabase
+        .from("game_sessions")
+        .select("*")
+        .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+        .order("created_at", { ascending: false });
+
+      setMyGames(myGamesData || []);
+
       toast({
         title: "Success",
         description: "Game deleted successfully",
