@@ -37,7 +37,7 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
     }
   };
 
-  const submitGuess = async () => {
+  const submitInitialNumbers = async () => {
     if (selectedNumbers.length !== 4) {
       toast({
         title: "Error",
@@ -48,39 +48,31 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
     }
 
     try {
-      const { error: guessError } = await supabase.from("guesses").insert({
-        game_id: gameId,
-        player_id: user?.id,
-        numbers: selectedNumbers,
-      });
-
-      if (guessError) throw guessError;
-
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from("game_sessions")
         .update({
-          current_turn:
-            gameData.player1_id === user?.id
-              ? gameData.player2_id
-              : gameData.player1_id,
+          player1_number: selectedNumbers,
+          status: "waiting_for_player",
         })
-        .eq("id", gameId);
+        .eq("id", gameId)
+        .eq("player1_id", user?.id);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
       setSelectedNumbers([]);
     } catch (error) {
-      console.error("Error submitting guess:", error);
+      console.error("Error setting initial numbers:", error);
       toast({
         title: "Error",
-        description: "Failed to submit guess",
+        description: "Failed to set initial numbers",
         variant: "destructive",
       });
     }
   };
 
   const isMyTurn = gameData?.current_turn === user?.id;
-  const isSettingNumbers = false;
+  const isSettingNumbers =
+    gameData?.player1_id === user?.id && !gameData?.player1_number;
 
   return (
     <div className="min-h-screen bg-game-background text-white p-4">
@@ -103,13 +95,15 @@ const OnlineGame = ({ gameId, onExit }: OnlineGameProps) => {
           <NumberSelection
             selectedNumbers={selectedNumbers}
             onNumberClick={handleNumberClick}
-            disabled={!isMyTurn}
+            disabled={!isMyTurn && !isSettingNumbers}
           />
 
           <GameControls
-            onSubmit={submitGuess}
+            onSubmit={isSettingNumbers ? submitInitialNumbers : submitGuess}
             onExit={onExit}
-            submitDisabled={!isMyTurn || selectedNumbers.length !== 4}
+            submitDisabled={
+              selectedNumbers.length !== 4 || (!isMyTurn && !isSettingNumbers)
+            }
             isSettingNumbers={isSettingNumbers}
           />
         </div>

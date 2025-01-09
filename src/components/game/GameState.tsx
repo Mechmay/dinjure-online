@@ -20,19 +20,12 @@ const GameState = ({
     try {
       const { data: gameData, error: gameError } = await supabase
         .from("game_sessions")
-        .select(
-          `
-          *,
-          player1:player1_id(*),
-          player2:player2_id(*)
-        `
-        )
+        .select("*")
         .eq("id", gameId)
         .single();
 
       if (gameError) {
         if (isInitialLoad) {
-          // Only show error toast on initial load
           toast({
             title: "Error",
             description: "Failed to load game data",
@@ -52,31 +45,13 @@ const GameState = ({
         .order("created_at", { ascending: false });
 
       if (guessesError) {
-        if (isInitialLoad) {
-          // Only show error toast on initial load
-          toast({
-            title: "Error",
-            description: "Failed to load guesses",
-            variant: "destructive",
-          });
-        }
         console.error("Error fetching guesses:", guessesError);
         return;
       }
 
       onGuessesUpdate(guessesData || []);
     } catch (error) {
-      if (isInitialLoad) {
-        // Only show error toast on initial load
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred",
-          variant: "destructive",
-        });
-      }
       console.error("Error in fetchGameData:", error);
-    } finally {
-      setIsInitialLoad(false);
     }
   };
 
