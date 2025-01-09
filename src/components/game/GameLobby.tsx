@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "../auth/AuthProvider";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
 import { useGameManagement } from "@/hooks/useGameManagement";
 import AvailableGamesList from "./AvailableGamesList";
 import MyGamesList from "./MyGamesList";
@@ -8,12 +8,19 @@ import { useEffect } from "react";
 
 interface GameLobbyProps {
   onGameStart: (gameId: string) => void;
+  onBack: () => void;
 }
 
-const GameLobby = ({ onGameStart }: GameLobbyProps) => {
+const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
   const { user } = useAuth();
-  const { availableGames, myGames, isLoading, createGame, joinGame } =
-    useGameManagement(user?.id, onGameStart);
+  const {
+    availableGames,
+    myGames,
+    isLoading,
+    createGame,
+    joinGame,
+    deleteGame,
+  } = useGameManagement(user?.id, onGameStart);
 
   useEffect(() => {
     console.log("GameLobby state:", {
@@ -36,7 +43,16 @@ const GameLobby = ({ onGameStart }: GameLobbyProps) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-game-accent">Game Lobby</h2>
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={onBack}
+            variant="ghost"
+            className="text-game-accent hover:text-game-accent/80"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h2 className="text-2xl font-bold text-game-accent">Game Lobby</h2>
+        </div>
         <Button
           onClick={createGame}
           className="bg-game-accent text-game-background hover:bg-game-accent/80"
@@ -45,7 +61,42 @@ const GameLobby = ({ onGameStart }: GameLobbyProps) => {
         </Button>
       </div>
 
-      <MyGamesList games={myGames} onContinueGame={onGameStart} />
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-game-accent">My Games</h3>
+        {myGames.map((game) => (
+          <div
+            key={game.id}
+            className="flex justify-between items-center p-4 border-2 border-game-accent/20 rounded-lg bg-white/5"
+          >
+            <div className="space-y-1">
+              <span className="text-white">Game #{game.id.slice(0, 8)}</span>
+              <p className="text-sm text-white/60">
+                {game.status === "waiting_for_player"
+                  ? "Waiting for opponent..."
+                  : "Game in progress"}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {game.player1_id === user?.id && (
+                <Button
+                  onClick={() => deleteGame(game.id)}
+                  variant="destructive"
+                  size="icon"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                onClick={() => onGameStart(game.id)}
+                className="bg-game-accent text-game-background hover:bg-game-accent/80"
+              >
+                Continue Game
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <AvailableGamesList games={availableGames} onJoinGame={joinGame} />
     </div>
   );

@@ -92,11 +92,45 @@ export const useGameManagement = (
     };
   }, [userId]);
 
+  const deleteGame = async (gameId: string) => {
+    try {
+      const { error } = await supabase
+        .from("game_sessions")
+        .delete()
+        .eq("id", gameId)
+        .eq("player1_id", userId)
+        .eq("status", "waiting_for_player");
+
+      if (error) {
+        console.error("Error deleting game:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete game",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Game deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error in deleteGame:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     availableGames,
     myGames,
     isLoading,
     createGame,
     joinGame,
+    deleteGame,
   };
 };
