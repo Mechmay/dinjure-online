@@ -8,12 +8,22 @@ export const useGameCreation = (
 ) => {
   const { toast } = useToast();
 
-  const createGame = async () => {
+  const createGame = async (initialNumbers?: number[]) => {
     try {
+      if (!initialNumbers || initialNumbers.length !== 4) {
+        toast({
+          title: "Error",
+          description: "Please select 4 numbers first",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data: game, error } = await supabase
         .from("game_sessions")
         .insert({
           player1_id: userId,
+          player1_number: initialNumbers,
           status: "waiting_for_player",
         })
         .select()

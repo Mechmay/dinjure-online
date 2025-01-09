@@ -4,7 +4,8 @@ import { Loader2, ArrowLeft, Trash2 } from "lucide-react";
 import { useGameManagement } from "@/hooks/useGameManagement";
 import AvailableGamesList from "./AvailableGamesList";
 import MyGamesList from "./MyGamesList";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import NumberSelection from "./NumberSelection";
 
 interface GameLobbyProps {
   onGameStart: (gameId: string) => void;
@@ -22,6 +23,9 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
     deleteGame,
   } = useGameManagement(user?.id, onGameStart);
 
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+  const [isSelectingNumbers, setIsSelectingNumbers] = useState(false);
+
   useEffect(() => {
     console.log("GameLobby state:", {
       user,
@@ -30,6 +34,46 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
       myGames,
     });
   }, [user, isLoading, availableGames, myGames]);
+
+  const handleCreateGame = () => {
+    setIsSelectingNumbers(true);
+  };
+
+  const handleNumberSubmit = () => {
+    if (selectedNumbers.length === 4) {
+      createGame(selectedNumbers);
+      setSelectedNumbers([]);
+      setIsSelectingNumbers(false);
+    }
+  };
+
+  if (isSelectingNumbers) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-game-accent">
+          Select Your Numbers
+        </h2>
+        <NumberSelection
+          selectedNumbers={selectedNumbers}
+          onNumberClick={(num) => {
+            if (selectedNumbers.includes(num)) {
+              setSelectedNumbers((prev) => prev.filter((n) => n !== num));
+            } else if (selectedNumbers.length < 4) {
+              setSelectedNumbers((prev) => [...prev, num]);
+            }
+          }}
+          disabled={false}
+        />
+        <Button
+          onClick={handleNumberSubmit}
+          disabled={selectedNumbers.length !== 4}
+          className="bg-game-accent text-game-background hover:bg-game-accent/80"
+        >
+          Create Game
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading) {
     console.log("GameLobby is in loading state");
@@ -54,7 +98,7 @@ const GameLobby = ({ onGameStart, onBack }: GameLobbyProps) => {
           <h2 className="text-2xl font-bold text-game-accent">Game Lobby</h2>
         </div>
         <Button
-          onClick={createGame}
+          onClick={handleCreateGame}
           className="bg-game-accent text-game-background hover:bg-game-accent/80"
         >
           Create New Game
