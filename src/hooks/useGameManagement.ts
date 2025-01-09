@@ -111,13 +111,10 @@ export const useGameManagement = (
         return;
       }
 
-      const { data: myGamesData } = await supabase
-        .from("game_sessions")
-        .select("*")
-        .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
-        .order("created_at", { ascending: false });
-
-      setMyGames(myGamesData || []);
+      setMyGames((prevGames) => prevGames.filter((game) => game.id !== gameId));
+      setAvailableGames((prevGames) =>
+        prevGames.filter((game) => game.id !== gameId)
+      );
 
       toast({
         title: "Success",
