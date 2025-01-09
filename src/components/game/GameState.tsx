@@ -49,7 +49,6 @@ const GameState = ({
         return;
       }
 
-      console.log("Raw guesses data:", guessesData);
       onGuessesUpdate(guessesData || []);
     } catch (error) {
       console.error("Error in fetchGameData:", error);
@@ -69,23 +68,17 @@ const GameState = ({
           table: "game_sessions",
           filter: `id=eq.${gameId}`,
         },
-        () => {
-          console.log("Game session changed, fetching updates");
-          fetchGameData();
-        }
+        () => fetchGameData()
       )
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "guesses",
           filter: `game_id=eq.${gameId}`,
         },
-        () => {
-          console.log("New guess received, fetching updates");
-          fetchGameData();
-        }
+        () => fetchGameData()
       )
       .subscribe();
 
