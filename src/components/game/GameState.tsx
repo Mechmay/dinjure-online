@@ -18,6 +18,7 @@ const GameState = ({
 
   const fetchGameData = async () => {
     try {
+      // First fetch game data
       const { data: gameData, error: gameError } = await supabase
         .from("game_sessions")
         .select("*")
@@ -38,9 +39,15 @@ const GameState = ({
 
       onGameUpdate(gameData);
 
+      // Then fetch guesses with proper ordering
       const { data: guessesData, error: guessesError } = await supabase
         .from("guesses")
-        .select("*")
+        .select(
+          `
+          *,
+          player:player_id(*)
+        `
+        )
         .eq("game_id", gameId)
         .order("created_at", { ascending: false });
 
@@ -49,6 +56,7 @@ const GameState = ({
         return;
       }
 
+      console.log("Fetched guesses:", guessesData);
       onGuessesUpdate(guessesData || []);
     } catch (error) {
       console.error("Error in fetchGameData:", error);
@@ -58,11 +66,8 @@ const GameState = ({
   useEffect(() => {
     fetchGameData();
 
-    // Create a single channel for both game and guess updates
-    const gameChannel = supabase.channel(`game_room_${gameId}`);
-
-    // Subscribe to game session changes
-    gameChannel
+    const channel = supabase
+      .channel("game_changes")
       .on(
         "postgres_changes",
         {
@@ -71,12 +76,11 @@ const GameState = ({
           table: "game_sessions",
           filter: `id=eq.${gameId}`,
         },
-        async (payload) => {
-          console.log("Game session changed:", payload);
-          await fetchGameData();
+        () => {
+          console.log("Game session changed, fetching updates");
+          fetchGameData();
         }
       )
-      // Subscribe to guesses changes
       .on(
         "postgres_changes",
         {
@@ -85,26 +89,17 @@ const GameState = ({
           table: "guesses",
           filter: `game_id=eq.${gameId}`,
         },
-        async (payload) => {
-          console.log("New guess received:", payload);
-          await fetchGameData();
+        () => {
+          console.log("New guess received, fetching updates");
+          fetchGameData();
         }
-      );
+      )
+      .subscribe();
 
-    // Start the subscription
-    gameChannel.subscribe(async (status) => {
-      if (status === "SUBSCRIBED") {
-        console.log("Successfully subscribed to game updates");
-        await fetchGameData(); // Initial fetch after successful subscription
-      }
-    });
-
-    // Cleanup
     return () => {
-      console.log("Cleaning up game channel subscription");
-      supabase.removeChannel(gameChannel);
+      supabase.removeChannel(channel);
     };
-  }, [gameId]); // Only re-run if gameId changes
+  }, [gameId]);
 
   return null;
 };
