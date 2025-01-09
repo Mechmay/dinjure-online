@@ -130,6 +130,15 @@ export const useGameManagement = (
     }
   };
 
+  useEffect(() => {
+    const handleGameCreated = () => {
+      fetchGames(); // Refresh the games list
+    };
+
+    window.addEventListener("game_created", handleGameCreated);
+    return () => window.removeEventListener("game_created", handleGameCreated);
+  }, []);
+
   return {
     availableGames,
     myGames,
