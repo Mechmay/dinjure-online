@@ -18,7 +18,6 @@ const GameState = ({
 
   const fetchGameData = async () => {
     try {
-      // First fetch game data
       const { data: gameData, error: gameError } = await supabase
         .from("game_sessions")
         .select("*")
@@ -39,15 +38,9 @@ const GameState = ({
 
       onGameUpdate(gameData);
 
-      // Then fetch guesses with proper ordering
       const { data: guessesData, error: guessesError } = await supabase
         .from("guesses")
-        .select(
-          `
-          *,
-          player:player_id(*)
-        `
-        )
+        .select("*")
         .eq("game_id", gameId)
         .order("created_at", { ascending: false });
 
@@ -56,7 +49,7 @@ const GameState = ({
         return;
       }
 
-      console.log("Fetched guesses:", guessesData);
+      console.log("Raw guesses data:", guessesData);
       onGuessesUpdate(guessesData || []);
     } catch (error) {
       console.error("Error in fetchGameData:", error);
@@ -67,17 +60,30 @@ const GameState = ({
     fetchGameData();
 
     const channel = supabase
-      .channel("game_updates")
+      .channel("game_changes")
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
+          schema: "public",
+          table: "game_sessions",
+          filter: `id=eq.${gameId}`,
+        },
+        () => {
+          console.log("Game session changed, fetching updates");
+          fetchGameData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
           schema: "public",
           table: "guesses",
           filter: `game_id=eq.${gameId}`,
         },
         () => {
-          console.log("New guess detected");
+          console.log("New guess received, fetching updates");
           fetchGameData();
         }
       )
