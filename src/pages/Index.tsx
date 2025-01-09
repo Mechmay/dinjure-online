@@ -22,8 +22,13 @@ interface Guess {
 }
 
 const Index = () => {
-  const [gameMode, setGameMode] = useState<GameMode>(null);
-  const [onlineGameId, setOnlineGameId] = useState<string | null>(null);
+  const [gameMode, setGameMode] = useState<GameMode>(() => {
+    const savedMode = localStorage.getItem("gameMode");
+    return (savedMode as GameMode) || null;
+  });
+  const [onlineGameId, setOnlineGameId] = useState<string | null>(() => {
+    return localStorage.getItem("onlineGameId");
+  });
   const [targetNumber, setTargetNumber] = useState<number[]>([]);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [guesses, setGuesses] = useState<Guess[]>([]);
@@ -57,6 +62,7 @@ const Index = () => {
 
   const handleGameStart = (gameId: string) => {
     setOnlineGameId(gameId);
+    localStorage.setItem("onlineGameId", gameId);
   };
 
   const handleExitGame = () => {
@@ -65,6 +71,8 @@ const Index = () => {
     setSelectedNumbers([]);
     setGuesses([]);
     setGameWon(false);
+    localStorage.removeItem("onlineGameId");
+    localStorage.removeItem("gameMode");
   };
 
   const handleNumberClick = (number: number) => {
@@ -122,7 +130,13 @@ const Index = () => {
 
   if (!gameMode) {
     return (
-      <GameModeSelection onModeSelect={setGameMode} onSignOut={handleSignOut} />
+      <GameModeSelection
+        onModeSelect={(mode) => {
+          setGameMode(mode);
+          localStorage.setItem("gameMode", mode);
+        }}
+        onSignOut={handleSignOut}
+      />
     );
   }
 
