@@ -58,9 +58,11 @@ const GameState = ({
   useEffect(() => {
     fetchGameData();
 
-    // Subscribe to both game and guess changes
-    const channel = supabase
-      .channel(`game_${gameId}`)
+    // Create a single channel for both game and guess updates
+    const gameChannel = supabase.channel(`game_room_${gameId}`);
+
+    // Subscribe to game session changes
+    gameChannel
       .on(
         "postgres_changes",
         {
@@ -69,33 +71,40 @@ const GameState = ({
           table: "game_sessions",
           filter: `id=eq.${gameId}`,
         },
-        () => {
-          console.log("Game updated, fetching new data");
-          fetchGameData();
+        async (payload) => {
+          console.log("Game session changed:", payload);
+          await fetchGameData();
         }
       )
+      // Subscribe to guesses changes
       .on(
         "postgres_changes",
         {
-          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
+          event: "*",
           schema: "public",
           table: "guesses",
           filter: `game_id=eq.${gameId}`,
         },
-        (payload) => {
+        async (payload) => {
           console.log("New guess received:", payload);
-          fetchGameData(); // Refresh all data when a new guess is made
+          await fetchGameData();
         }
-      )
-      .subscribe((status) => {
-        console.log("Subscription status:", status);
-      });
+      );
 
+    // Start the subscription
+    gameChannel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        console.log("Successfully subscribed to game updates");
+        await fetchGameData(); // Initial fetch after successful subscription
+      }
+    });
+
+    // Cleanup
     return () => {
-      console.log("Cleaning up subscriptions");
-      supabase.removeChannel(channel);
+      console.log("Cleaning up game channel subscription");
+      supabase.removeChannel(gameChannel);
     };
-  }, [gameId]);
+  }, [gameId]); // Only re-run if gameId changes
 
   return null;
 };
