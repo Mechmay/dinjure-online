@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,10 +14,10 @@ const GameState = ({
   onGuessesUpdate,
 }: GameStateProps) => {
   const { toast } = useToast();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchGameData = async () => {
     try {
-      // Fetch game data with player information
       const { data: gameData, error: gameError } = await supabase
         .from("game_sessions")
         .select(
@@ -31,13 +31,20 @@ const GameState = ({
         .single();
 
       if (gameError) {
+        if (isInitialLoad) {
+          // Only show error toast on initial load
+          toast({
+            title: "Error",
+            description: "Failed to load game data",
+            variant: "destructive",
+          });
+        }
         console.error("Error fetching game:", gameError);
         return;
       }
 
       onGameUpdate(gameData);
 
-      // Fetch guesses
       const { data: guessesData, error: guessesError } = await supabase
         .from("guesses")
         .select("*")
@@ -45,21 +52,37 @@ const GameState = ({
         .order("created_at", { ascending: false });
 
       if (guessesError) {
+        if (isInitialLoad) {
+          // Only show error toast on initial load
+          toast({
+            title: "Error",
+            description: "Failed to load guesses",
+            variant: "destructive",
+          });
+        }
         console.error("Error fetching guesses:", guessesError);
         return;
       }
 
       onGuessesUpdate(guessesData || []);
     } catch (error) {
+      if (isInitialLoad) {
+        // Only show error toast on initial load
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
+      }
       console.error("Error in fetchGameData:", error);
+    } finally {
+      setIsInitialLoad(false);
     }
   };
 
   useEffect(() => {
-    // Initial fetch
     fetchGameData();
 
-    // Subscribe to game changes
     const channel = supabase
       .channel(`game_${gameId}`)
       .on(
@@ -70,9 +93,7 @@ const GameState = ({
           table: "game_sessions",
           filter: `id=eq.${gameId}`,
         },
-        () => {
-          fetchGameData();
-        }
+        () => fetchGameData()
       )
       .on(
         "postgres_changes",
@@ -82,9 +103,7 @@ const GameState = ({
           table: "guesses",
           filter: `game_id=eq.${gameId}`,
         },
-        () => {
-          fetchGameData();
-        }
+        () => fetchGameData()
       )
       .subscribe();
 
