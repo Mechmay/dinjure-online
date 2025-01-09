@@ -38,4 +38,4 @@ Dinjure is an engaging multiplayer number guessing game where players try to ded
 - React
 - TypeScript
 - Supabase (Backend & Real-time updates)
-- Tailwind CSS
+- Tailwind CSS.
