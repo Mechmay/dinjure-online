@@ -96,6 +96,41 @@ export const useGameManagement = (
     };
   }, [userId]);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const cleanupStaleGames = async () => {
+      try {
+        // Delete games older than 10 minutes that are still waiting for players
+        const tenMinutesAgo = new Date(
+          Date.now() - 10 * 60 * 1000
+        ).toISOString();
+
+        const { error } = await supabase
+          .from("game_sessions")
+          .delete()
+          .eq("status", "waiting_for_player")
+          .lt("created_at", tenMinutesAgo);
+
+        if (error) {
+          console.error("Error cleaning up stale games:", error);
+        }
+      } catch (error) {
+        console.error("Error in cleanupStaleGames:", error);
+      }
+    };
+
+    // Run cleanup when component mounts
+    cleanupStaleGames();
+
+    // Set up interval to run cleanup every minute
+    const cleanupInterval = setInterval(cleanupStaleGames, 60 * 1000);
+
+    return () => {
+      clearInterval(cleanupInterval);
+    };
+  }, [userId]);
+
   const deleteGame = async (gameId: string) => {
     try {
       const { error } = await supabase
