@@ -1,7 +1,6 @@
 import React from "react";
 import { useTheme } from "./theme/ThemeProvider";
 import { cn } from "@/lib/utils";
-import { formatDistanceToNow } from "date-fns";
 
 interface GuessHistoryProps {
   guesses: any[];
@@ -23,7 +22,6 @@ const GuessHistory = ({
         {guesses.map((guess, index) => {
           const isMyGuess = guess.player_id === currentPlayerId;
           const isPlayer1 = guess.player_id === player1Id;
-          const timestamp = new Date(guess.created_at);
 
           return (
             <div
@@ -34,32 +32,25 @@ const GuessHistory = ({
                   : "bg-white/5 border-2 border-white/20"
               }`}
             >
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-sm font-semibold ${
-                        isPlayer1 ? "text-blue-400" : "text-red-400"
-                      }`}
-                    >
-                      {isPlayer1 ? "Player 1" : "Player 2"}
-                    </span>
-                    <span className="text-white">
-                      {guess.numbers.join(", ")}
-                    </span>
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-green-400 font-bold">
-                      {guess.dead} Dead
-                    </span>
-                    <span className="mx-2">•</span>
-                    <span className="text-yellow-400 font-bold">
-                      {guess.injured} Injured
-                    </span>
-                  </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-sm font-semibold ${
+                      isPlayer1 ? "text-blue-400" : "text-red-400"
+                    }`}
+                  >
+                    {isPlayer1 ? "Player 1" : "Player 2"}
+                  </span>
+                  <span className="text-white">{guess.numbers.join(", ")}</span>
                 </div>
-                <div className="text-xs text-gray-400">
-                  {formatDistanceToNow(timestamp, { addSuffix: true })}
+                <div className="text-sm">
+                  <span className="text-green-400 font-bold">
+                    {guess.dead} Dead
+                  </span>
+                  <span className="mx-2">•</span>
+                  <span className="text-yellow-400 font-bold">
+                    {guess.injured} Injured
+                  </span>
                 </div>
               </div>
             </div>
